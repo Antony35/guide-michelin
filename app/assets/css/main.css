@@ -1,27 +1,14 @@
-/* ============================================================
-   Variables globales — Guide Michelin Design System
-   ============================================================ */
-
 :root {
-  /* Couleurs */
   --color-black: #0a0a08;
-  --color-cream: #f0ead6;
+  --color-cream: #f0f4f5;
   --color-red: #c8102e;
   --color-gold: #b8975a;
   --color-gray: #8a8680;
-
-  /* Typographie */
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Didact Gothic', 'Helvetica Neue', sans-serif;
-
-  /* Espacements */
   --spacing-section: 6rem;
   --spacing-card: 2rem;
 }
-
-/* ============================================================
-   Reset & base
-   ============================================================ */
 
 *,
 *::before,
@@ -39,16 +26,12 @@ body {
   margin: 0;
   background-color: var(--color-black);
   color: var(--color-cream);
-  font-family: var(--font-sans);
+  font-family: var(--font-sans), sans-serif;
   line-height: 1.6;
 }
 
-/* ============================================================
-   Typographie
-   ============================================================ */
-
 h1, h2, h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-serif), sans-serif;
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: 0.02em;
@@ -57,10 +40,6 @@ h1, h2, h3 {
 h1 { font-size: clamp(2.5rem, 6vw, 5rem); }
 h2 { font-size: clamp(1.75rem, 4vw, 3rem); }
 h3 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); }
-
-/* ============================================================
-   Transitions de page (Nuxt pageTransition)
-   ============================================================ */
 
 .page-enter-active,
 .page-leave-active {
