@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { City, Restaurant, Hotel, JourVoyage } from '~/types'
+import type { City, Restaurant, Hotel, JourVoyage, StarLevel } from '~/types'
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 9)
@@ -21,8 +21,8 @@ export const useVoyageStore = defineStore('voyage', {
     selectedItem: null as Restaurant | Hotel | null,
     selectedItemType: null as 'restaurant' | 'hotel' | null,
     activeJourId: null as string | null,
-    showRestaurants: true,
-    showHotels: true,
+    restaurantStarFilters: [] as StarLevel[],
+    hotelStarFilters: [] as string[],
   }),
 
   getters: {
@@ -53,21 +53,27 @@ export const useVoyageStore = defineStore('voyage', {
     selectedHotel(state): Hotel | null {
       return state.selectedItemType === 'hotel' ? state.selectedItem as Hotel : null
     },
+    restaurantFilterActive(state): boolean {
+      return state.restaurantStarFilters.length > 0
+    },
+    hotelFilterActive(state): boolean {
+      return state.hotelStarFilters.length > 0
+    },
   },
 
   actions: {
     initVoyage(depart: City, arrivee: City, dateDepart?: string, dateArrivee?: string) {
       const startDate = dateDepart ?? todayISO()
-      const endDate = dateArrivee ?? addDays(startDate, 1)
+      const endDate   = dateArrivee ?? addDays(startDate, 1)
       this.jours = [
         { id: uid(), date: startDate, city: depart, hotel: null, restaurants: [] },
-        { id: uid(), date: endDate, city: arrivee, hotel: null, restaurants: [] },
+        { id: uid(), date: endDate,   city: arrivee, hotel: null, restaurants: [] },
       ]
-      this.selectedItem = null
-      this.selectedItemType = null
-      this.activeJourId = this.jours[0].id
-      this.showRestaurants = true
-      this.showHotels = true
+      this.selectedItem          = null
+      this.selectedItemType      = null
+      this.activeJourId          = this.jours[0].id
+      this.restaurantStarFilters = []
+      this.hotelStarFilters      = []
     },
 
     addEtape(city: City, date?: string) {
@@ -116,32 +122,43 @@ export const useVoyageStore = defineStore('voyage', {
 
     setSelectedItem(item: Restaurant | Hotel | null, type: 'restaurant' | 'hotel' | null = null) {
       if (!item) {
-        this.selectedItem = null
+        this.selectedItem     = null
         this.selectedItemType = null
         return
       }
       if (this.selectedItem?.id === item.id && this.selectedItemType === type) {
-        this.selectedItem = null
+        this.selectedItem     = null
         this.selectedItemType = null
         return
       }
-      this.selectedItem = item
+      this.selectedItem     = item
       this.selectedItemType = type
       const itemCity = (item as Restaurant).city
       const jour = this.jours.find(j => j.city.city.toLowerCase() === itemCity.toLowerCase())
       if (jour) this.activeJourId = jour.id
     },
 
-    toggleRestaurants() { this.showRestaurants = !this.showRestaurants },
-    toggleHotels() { this.showHotels = !this.showHotels },
+    toggleRestaurantStar(star: StarLevel) {
+      const idx = this.restaurantStarFilters.indexOf(star)
+      idx >= 0
+        ? this.restaurantStarFilters.splice(idx, 1)
+        : this.restaurantStarFilters.push(star)
+    },
+
+    toggleHotelStar(star: string) {
+      const idx = this.hotelStarFilters.indexOf(star)
+      idx >= 0
+        ? this.hotelStarFilters.splice(idx, 1)
+        : this.hotelStarFilters.push(star)
+    },
 
     reset() {
-      this.jours = []
-      this.selectedItem = null
-      this.selectedItemType = null
-      this.activeJourId = null
-      this.showRestaurants = true
-      this.showHotels = true
+      this.jours                 = []
+      this.selectedItem          = null
+      this.selectedItemType      = null
+      this.activeJourId          = null
+      this.restaurantStarFilters = []
+      this.hotelStarFilters      = []
     },
   },
 })

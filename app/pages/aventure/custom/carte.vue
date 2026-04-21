@@ -12,9 +12,24 @@ const router = useRouter()
 const store = useVoyageStore()
 const { getCity, getItemsForCities } = useVoyageData()
 
-const showEtapeModal = ref(false)
-const newEtapeNom = ref('')
-const newEtapeDate = ref('')
+const showEtapeModal  = ref(false)
+const newEtapeNom     = ref('')
+const newEtapeDate    = ref('')
+const activeDropdown  = ref<'restos' | 'hotels' | null>(null)
+
+const restaurantOptions = [
+  { value: 'bib',   label: 'Bib Gourmand' },
+  { value: 'one',   label: '★ Une étoile' },
+  { value: 'two',   label: '★★ Deux étoiles' },
+  { value: 'three', label: '★★★ Trois étoiles' },
+  { value: 'none',  label: 'Sans distinction' },
+] as const
+
+const hotelOptions = [
+  { value: '3', label: '★★★' },
+  { value: '4', label: '★★★★' },
+  { value: '5', label: '★★★★★' },
+] as const
 
 // ─── Bottom sheet drag ────────────────────────────────────────────────────────
 
@@ -99,7 +114,15 @@ onMounted(() => {
 
 const mapData = computed(() => {
   if (!store.depart || !store.arrivee) return null
-  return getItemsForCities(store.allCityNames)
+  const { restaurants, hotels } = getItemsForCities(store.allCityNames)
+  return {
+    restaurants: store.restaurantStarFilters.length
+      ? restaurants.filter(r => store.restaurantStarFilters.includes(r.stars))
+      : restaurants,
+    hotels: store.hotelStarFilters.length
+      ? hotels.filter(h => store.hotelStarFilters.includes(h.stars))
+      : hotels,
+  }
 })
 
 const etapesDisponibles = computed(() =>
@@ -180,15 +203,65 @@ function ajouterEtape() {
           :hotels="mapData.hotels"
           :selected-restaurant="store.selectedRestaurant"
           :selected-hotel="store.selectedHotel"
-          :show-restaurants="store.showRestaurants"
-          :show-hotels="store.showHotels"
           @item-clicked="onItemClicked"
         />
 
-        <!-- Filtres -->
+        <!-- Backdrop ferme les dropdowns -->
+        <div v-if="activeDropdown" class="filter-backdrop" @click="activeDropdown = null" />
+
+        <!-- Filtres dropdowns -->
         <div class="map-filters">
-          <button class="filter-chip" :class="{ active: store.showRestaurants }" @click="store.toggleRestaurants()">🍽️ Restos</button>
-          <button class="filter-chip" :class="{ active: store.showHotels }"      @click="store.toggleHotels()">🏨 Hôtels</button>
+
+          <!-- Restaurants -->
+          <div class="filter-wrap">
+            <button
+              class="filter-chip"
+              :class="{ active: store.restaurantFilterActive }"
+              @click.stop="activeDropdown = activeDropdown === 'restos' ? null : 'restos'"
+            >
+              🍽️ Restos
+              <span v-if="store.restaurantFilterActive" class="filter-count">{{ store.restaurantStarFilters.length }}</span>
+              <span class="filter-caret">▾</span>
+            </button>
+            <div v-if="activeDropdown === 'restos'" class="filter-panel" @click.stop>
+              <button
+                v-for="opt in restaurantOptions"
+                :key="opt.value"
+                class="filter-opt"
+                :class="{ 'filter-opt-on': store.restaurantStarFilters.includes(opt.value as any) }"
+                @click="store.toggleRestaurantStar(opt.value as any)"
+              >
+                <span class="opt-check">{{ store.restaurantStarFilters.includes(opt.value as any) ? '✓' : '' }}</span>
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Hôtels -->
+          <div class="filter-wrap">
+            <button
+              class="filter-chip"
+              :class="{ active: store.hotelFilterActive }"
+              @click.stop="activeDropdown = activeDropdown === 'hotels' ? null : 'hotels'"
+            >
+              🏨 Hôtels
+              <span v-if="store.hotelFilterActive" class="filter-count">{{ store.hotelStarFilters.length }}</span>
+              <span class="filter-caret">▾</span>
+            </button>
+            <div v-if="activeDropdown === 'hotels'" class="filter-panel" @click.stop>
+              <button
+                v-for="opt in hotelOptions"
+                :key="opt.value"
+                class="filter-opt"
+                :class="{ 'filter-opt-on': store.hotelStarFilters.includes(opt.value) }"
+                @click="store.toggleHotelStar(opt.value)"
+              >
+                <span class="opt-check">{{ store.hotelStarFilters.includes(opt.value) ? '✓' : '' }}</span>
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <!-- FAB étape -->
@@ -378,6 +451,11 @@ function ajouterEtape() {
 }
 
 /* ── Filtres ─────────────────────────────────────── */
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 499;
+}
 .map-filters {
   position: absolute;
   top: 0.85rem;
@@ -387,8 +465,14 @@ function ajouterEtape() {
   display: flex;
   gap: 0.5rem;
 }
+.filter-wrap {
+  position: relative;
+}
 .filter-chip {
-  padding: 0.45rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.8rem;
   border-radius: 999px;
   font-family: var(--font-sans);
   font-size: 0.8rem;
@@ -399,12 +483,64 @@ function ajouterEtape() {
   color: #9aabae;
   backdrop-filter: blur(8px);
   transition: all 0.2s;
+  white-space: nowrap;
 }
 .filter-chip.active {
   background: #fff;
   border-color: #c8102e;
   color: #c8102e;
   box-shadow: 0 2px 10px rgba(200,16,46,0.2);
+}
+.filter-count {
+  background: #c8102e;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  line-height: 1.4;
+}
+.filter-caret { font-size: 0.65rem; opacity: 0.7; }
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(10,10,8,0.16);
+  border: 1px solid rgba(10,10,8,0.08);
+  padding: 0.4rem;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  z-index: 501;
+}
+.filter-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: #1a2224;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.filter-opt:hover { background: #f4f7f8; }
+.filter-opt.filter-opt-on { background: rgba(200,16,46,0.07); color: #c8102e; font-weight: 600; }
+.opt-check {
+  width: 14px;
+  font-size: 0.75rem;
+  color: #c8102e;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 /* ── FAB ─────────────────────────────────────────── */

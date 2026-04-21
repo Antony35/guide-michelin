@@ -10,8 +10,6 @@ interface Props {
   hotels?: Hotel[]
   selectedRestaurant?: Restaurant | null
   selectedHotel?: Hotel | null
-  showRestaurants?: boolean
-  showHotels?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,8 +18,6 @@ const props = withDefaults(defineProps<Props>(), {
   hotels: () => [],
   selectedRestaurant: null,
   selectedHotel: null,
-  showRestaurants: true,
-  showHotels: true,
 })
 
 const emit = defineEmits<{
@@ -135,7 +131,7 @@ function addRestaurantMarker(r: Restaurant) {
     map!.flyTo([r.lat, r.lng], 15, { animate: true, duration: 0.6 })
     emit('item-clicked', r, 'restaurant')
   })
-  if (props.showRestaurants) marker.addTo(map)
+  marker.addTo(map)
   poiMarkers.set(key, marker)
 }
 
@@ -149,7 +145,7 @@ function addHotelMarker(h: Hotel) {
     map!.flyTo([h.lat, h.lng], 15, { animate: true, duration: 0.6 })
     emit('item-clicked', h, 'hotel')
   })
-  if (props.showHotels) marker.addTo(map)
+  marker.addTo(map)
   poiMarkers.set(key, marker)
 }
 
@@ -237,29 +233,6 @@ watch(
   }
 )
 
-// Filtre restaurants
-watch(
-  () => props.showRestaurants,
-  (show) => {
-    if (!map) return
-    for (const [key, marker] of poiMarkers) {
-      if (!key.startsWith('r-')) continue
-      show ? marker.addTo(map) : marker.remove()
-    }
-  }
-)
-
-// Filtre hôtels
-watch(
-  () => props.showHotels,
-  (show) => {
-    if (!map) return
-    for (const [key, marker] of poiMarkers) {
-      if (!key.startsWith('h-')) continue
-      show ? marker.addTo(map) : marker.remove()
-    }
-  }
-)
 </script>
 
 <template>
