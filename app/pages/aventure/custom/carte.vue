@@ -5,6 +5,7 @@ import { useVoyageStore } from '~/stores/voyage'
 import { useVoyageData, CITIES } from '~/composables/useVoyageData'
 import type { Restaurant, Hotel } from '~/types'
 
+
 definePageMeta({ layout: false })
 
 const route = useRoute()
@@ -61,13 +62,8 @@ function formatDate(iso: string): string {
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-function onSelectRestaurant(item: Restaurant) {
-  store.setSelectedItem(item, 'restaurant')
-  sheetOpen.value = true
-}
-
-function onSelectHotel(item: Hotel) {
-  store.setSelectedItem(item, 'hotel')
+function onItemClicked(item: Restaurant | Hotel, type: 'restaurant' | 'hotel') {
+  store.setSelectedItem(item, type)
   sheetOpen.value = true
 }
 
@@ -103,9 +99,24 @@ function ajouterEtape() {
           :hotels="mapData.hotels"
           :selected-restaurant="store.selectedRestaurant"
           :selected-hotel="store.selectedHotel"
-          @select-restaurant="onSelectRestaurant"
-          @select-hotel="onSelectHotel"
+          :show-restaurants="store.showRestaurants"
+          :show-hotels="store.showHotels"
+          @item-clicked="onItemClicked"
         />
+
+        <!-- Filtres -->
+        <div class="map-filters">
+          <button
+            class="filter-chip"
+            :class="{ active: store.showRestaurants }"
+            @click="store.toggleRestaurants()"
+          >🍽️ Restos</button>
+          <button
+            class="filter-chip"
+            :class="{ active: store.showHotels }"
+            @click="store.toggleHotels()"
+          >🏨 Hôtels</button>
+        </div>
 
         <!-- FAB ajouter étape -->
         <button class="fab-etape" @click="ouvrirModalEtape" title="Ajouter une étape">
@@ -249,6 +260,36 @@ function ajouterEtape() {
   flex: 1;
   position: relative;
   overflow: hidden;
+}
+
+/* ── Filtres ────────────────────────────────────── */
+.map-filters {
+  position: absolute;
+  top: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  gap: 0.5rem;
+}
+.filter-chip {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid rgba(10, 10, 8, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  color: #9aabae;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+.filter-chip.active {
+  background: #ffffff;
+  border-color: #c8102e;
+  color: #c8102e;
+  box-shadow: 0 2px 10px rgba(200, 16, 46, 0.2);
 }
 
 /* ── FAB étape ──────────────────────────────────── */
