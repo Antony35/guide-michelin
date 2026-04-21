@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PANELS, useLanding } from '~/composables/useLanding'
+import {PANELS, useLanding} from '~/composables/useLanding'
 
 const containerRef = ref<HTMLElement | null>(null)
 
@@ -15,48 +15,48 @@ const {
 
 <template>
   <main
-    ref="containerRef"
-    class="landing"
-    @mousemove="updateLogoAngle"
+      ref="containerRef"
+      class="landing"
+      @mousemove="updateLogoAngle"
   >
     <div class="title-wrapper">
-      <span class="title-text">Michelin Guide</span>
+      <img src="../assets/logo-text.svg" alt="Michelin" class=""/>
     </div>
 
     <NuxtLink
-      v-for="panel in PANELS"
-      :key="panel.id"
-      :to="panel.route"
-      class="panel"
-      @mouseenter="playPanelVideo(panel.id)"
-      @mouseleave="pausePanelVideo(panel.id)"
+        v-for="panel in PANELS"
+        :key="panel.id"
+        :to="panel.route"
+        class="panel"
+        @mouseenter="playPanelVideo(panel.id)"
+        @mouseleave="pausePanelVideo(panel.id)"
     >
-      <img :src="panel.posterSrc" :alt="panel.title" class="panel-poster" />
+      <img :src="panel.posterSrc" :alt="panel.title" class="panel-poster"/>
       <video
-        :ref="(el) => registerVideo(el, panel.id)"
-        :src="panel.videoSrc"
-        :class="{ 'is-playing': hasVideoStarted[panel.id] }"
-        muted
-        loop
-        playsinline
-        preload="none"
-        class="panel-video"
+          :ref="(el) => registerVideo(el, panel.id)"
+          :src="panel.videoSrc"
+          :class="{ 'is-playing': hasVideoStarted[panel.id] }"
+          muted
+          loop
+          playsinline
+          preload="none"
+          class="panel-video"
       />
-      <div class="panel-overlay" />
+      <div class="panel-overlay"/>
 
       <span class="panel-index">{{ panel.index }}</span>
 
       <div class="panel-content">
         <div class="panel-title-wrap">
           <h2 class="panel-title">{{ panel.title }}</h2>
-          <span class="panel-underline" />
+          <span class="panel-underline"/>
         </div>
         <p class="panel-description">{{ panel.description }}</p>
       </div>
     </NuxtLink>
 
     <div class="logo-wrap" :style="{ transform: `rotate(${logoAngle}deg)` }">
-      <img src="~/assets/logo.svg" alt="Michelin" class="logo" />
+      <img src="../assets/logo.svg" alt="Michelin" class="logo"/>
     </div>
   </main>
 </template>
@@ -78,7 +78,7 @@ const {
   position: absolute;
   inset: 0 0 auto 0;
   height: 14rem;
-  background: linear-gradient(to bottom, rgba(10, 10, 8, 0.82), transparent);
+  background: linear-gradient(to bottom, rgba(10, 10, 8, 0.7), transparent);
   z-index: 10;
   pointer-events: none;
 }
@@ -93,19 +93,17 @@ const {
   white-space: nowrap;
 }
 
-.title-text {
-  display: block;
-  font-family: var(--font-serif), sans-serif;
-  font-weight: 300;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  color: var(--color-cream);
-  text-shadow: 0 2px 24px rgba(10, 10, 8, 0.6);
-  animation: titleReveal 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
 @keyframes titleReveal {
-  from { opacity: 0; letter-spacing: 0.55em; transform: translateY(-10px); }
-  to   { opacity: 1; letter-spacing: 0.12em; transform: translateY(0); }
+  from {
+    opacity: 0;
+    letter-spacing: 0.55em;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.12em;
+    transform: translateY(0);
+  }
 }
 
 .panel {
@@ -115,11 +113,17 @@ const {
   text-decoration: none;
 }
 
-.panel:nth-child(2) { border-left: 1px solid rgba(240, 234, 214, 0.12); }
-.panel:nth-child(3) { border-top:  1px solid rgba(240, 234, 214, 0.12); }
+.panel:nth-child(2) {
+  border-left: 1px solid rgba(240, 234, 214, 0.12);
+}
+
+.panel:nth-child(3) {
+  border-top: 1px solid rgba(240, 234, 214, 0.12);
+}
+
 .panel:nth-child(4) {
   border-left: 1px solid rgba(240, 234, 214, 0.12);
-  border-top:  1px solid rgba(240, 234, 214, 0.12);
+  border-top: 1px solid rgba(240, 234, 214, 0.12);
 }
 
 .panel-poster,
@@ -143,23 +147,13 @@ const {
 .panel-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(10, 10, 8, 0.82) 0%,
-    rgba(10, 10, 8, 0.25) 50%,
-    rgba(10, 10, 8, 0.08) 100%
-  );
+  background: linear-gradient(to top, rgba(10, 10, 8, 0.5) 0%, transparent 50%);
   z-index: 1;
   transition: background 0.5s ease;
 }
 
 .panel:hover .panel-overlay {
-  background: linear-gradient(
-    to top,
-    rgba(10, 10, 8, 0.88) 0%,
-    rgba(10, 10, 8, 0.35) 55%,
-    rgba(10, 10, 8, 0.12) 100%
-  );
+  background: linear-gradient(to top, rgba(10, 10, 8, 0.65) 0%, transparent 75%);
 }
 
 .panel-index {
