@@ -100,7 +100,7 @@ const initMap = async () => {
   // Ajouter les marqueurs
   props.etapes.forEach((etape, index) => {
     const iconType = index === 0 ? 'start' : index === props.etapes.length - 1 ? 'end' : 'step'
-    const iconLabel = iconType === 'start' ? 'D' : iconType === 'end' ? 'A' : undefined
+    const iconLabel = iconType === 'end' ? 'A' : undefined
     const marker = L.marker([etape.lat, etape.lng], {
       icon: createIcon(L, iconType, iconLabel),
     })
@@ -286,7 +286,7 @@ watch(() => props.etapes, () => {
   font-family: var(--font-serif);
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-black);
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
@@ -343,7 +343,7 @@ watch(() => props.etapes, () => {
 
 .popup-description {
   font-size: 0.875rem;
-  color: var(--color-black);
+  color: #000000;
   margin: 0.5rem 0;
   line-height: 1.4;
 }
@@ -366,7 +366,7 @@ watch(() => props.etapes, () => {
 
 .badge-end {
   background-color: var(--color-red);
-  color: var(--color-cream);
+  color: #ffffff;
 }
 
 .badge-step {

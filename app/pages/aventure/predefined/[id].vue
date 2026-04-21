@@ -55,7 +55,7 @@ const roadtrip = ref<Roadtrip | undefined>(getRoadtripById(roadtripId))
             <div class="content-header">
               <h3 class="content-title">{{ etape.nom }}</h3>
               <span class="content-type" :class="`type-${etape.type}`">
-                {{ etape.type === 'restaurant' ? '🍽️ Restaurant' : '🏨 Hôtel' }}
+                {{ etape.type === 'restaurant' ? 'Restaurant' : 'Hôtel' }}
               </span>
             </div>
 

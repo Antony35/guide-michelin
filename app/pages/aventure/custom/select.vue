@@ -2,220 +2,68 @@
 import { computed, ref } from 'vue'
 import type { EtapeRoadtrip } from '../../../types'
 
-// Données de restaurants et hôtels disponibles
+// 3 villes cibles (restaurants et hôtels séparés)
+const cities = ['Paris', 'Lyon', 'Rennes'] as const
+
 const restaurants: EtapeRoadtrip[] = [
-  {
-    ordre: 1,
-    type: 'restaurant',
-    ville: 'Paris',
-    lat: 48.8566,
-    lng: 2.3522,
-    nom: 'L\'Astrance',
-    etoiles: 3,
-    cuisine: 'Française contemporaine',
-    description: 'Une cuisine innovante et raffinée au cœur de Paris',
-  },
-  {
-    ordre: 2,
-    type: 'restaurant',
-    ville: 'Lyon',
-    lat: 45.7640,
-    lng: 4.8357,
-    nom: 'Paul Bocuse',
-    etoiles: 3,
-    cuisine: 'Gastronomie lyonnaise',
-    description: 'Légende vivante de la gastronomie française',
-  },
-  {
-    ordre: 3,
-    type: 'restaurant',
-    ville: 'Avignon',
-    lat: 43.9462,
-    lng: 4.8084,
-    nom: 'Le Mille-feuille',
-    etoiles: 2,
-    cuisine: 'Méditerranéenne',
-    description: 'Cuisine de Provence avec influences méditerranéennes',
-  },
-  {
-    ordre: 4,
-    type: 'restaurant',
-    ville: 'Cannes',
-    lat: 43.5528,
-    lng: 7.0174,
-    nom: 'Le Goût de l\'Instant',
-    etoiles: 2,
-    cuisine: 'Méditerranéenne',
-    description: 'Vue sur la mer et saveurs côtières',
-  },
-  {
-    ordre: 5,
-    type: 'restaurant',
-    ville: 'Strasbourg',
-    lat: 48.5734,
-    lng: 7.7521,
-    nom: 'Maison Kammerzell',
-    etoiles: 1,
-    cuisine: 'Alsacienne',
-    description: 'Tradition alsacienne authentique',
-  },
-  {
-    ordre: 6,
-    type: 'restaurant',
-    ville: 'Bordeaux',
-    lat: 44.8378,
-    lng: -0.5792,
-    nom: 'Le Chai des Saveurs',
-    etoiles: 2,
-    cuisine: 'Terroir & vins',
-    description: 'Accords mets-vins précis, produits du Sud-Ouest et saisonnalité.',
-  },
-  {
-    ordre: 7,
-    type: 'restaurant',
-    ville: 'Marseille',
-    lat: 43.2965,
-    lng: 5.3698,
-    nom: 'La Table du Vieux-Port',
-    etoiles: 1,
-    cuisine: 'Poissons & bouillabaisse',
-    description: 'Cuisine marine élégante, hommage aux classiques provençaux.',
-  },
-  {
-    ordre: 8,
-    type: 'restaurant',
-    ville: 'Nice',
-    lat: 43.7102,
-    lng: 7.2620,
-    nom: 'Riviera Botanique',
-    etoiles: 1,
-    cuisine: 'Méditerranéenne végétale',
-    description: 'Assiettes lumineuses, herbes, agrumes et textures en finesse.',
-  },
-  {
-    ordre: 9,
-    type: 'restaurant',
-    ville: 'Toulouse',
-    lat: 43.6047,
-    lng: 1.4442,
-    nom: 'Le Cassoulet Moderne',
-    etoiles: 1,
-    cuisine: 'Sud-Ouest revisité',
-    description: 'Classiques toulousains modernisés, cuisson lente et sauces profondes.',
-  },
-  {
-    ordre: 10,
-    type: 'restaurant',
-    ville: 'Nantes',
-    lat: 47.2184,
-    lng: -1.5536,
-    nom: 'L\'Estuaire',
-    etoiles: 2,
-    cuisine: 'Iodé & végétal',
-    description: 'Produits atlantiques, légumes du maraîchage local et dressages épurés.',
-  },
-  {
-    ordre: 11,
-    type: 'restaurant',
-    ville: 'Lille',
-    lat: 50.6292,
-    lng: 3.0573,
-    nom: 'Flandres & Feu',
-    etoiles: 1,
-    cuisine: 'Flamande bistronomique',
-    description: 'Générosité du Nord, sauces réduites, grillades et inspirations houblonnées.',
-  },
-  {
-    ordre: 12,
-    type: 'restaurant',
-    ville: 'Reims',
-    lat: 49.2583,
-    lng: 4.0317,
-    nom: 'La Bulle & le Sarrasin',
-    etoiles: 1,
-    cuisine: 'Champagne & cuisine de saison',
-    description: 'Jeu de bulles, produits champenois et techniques contemporaines.',
-  },
-  {
-    ordre: 13,
-    type: 'restaurant',
-    ville: 'Annecy',
-    lat: 45.8992,
-    lng: 6.1294,
-    nom: 'Les Rives Alpines',
-    etoiles: 2,
-    cuisine: 'Alpine & lacustre',
-    description: 'Omble, herbes de montagne, fromages affinés et bouillons clairs.',
-  },
-  {
-    ordre: 14,
-    type: 'restaurant',
-    ville: 'Montpellier',
-    lat: 43.6108,
-    lng: 3.8767,
-    nom: 'La Garrigue',
-    etoiles: 1,
-    cuisine: 'Occitane',
-    description: 'Saveurs du Languedoc, huile d’olive, garrigue et cuissons au feu doux.',
-  },
-  {
-    ordre: 15,
-    type: 'restaurant',
-    ville: 'Dijon',
-    lat: 47.3220,
-    lng: 5.0415,
-    nom: 'Moutarde & Truffe',
-    etoiles: 1,
-    cuisine: 'Bourguignonne contemporaine',
-    description: 'Clin d’œil bourguignon, sauces au vin, textures soignées et produits nobles.',
-  },
+  { ordre: 1, type: 'restaurant', ville: 'Paris', lat: 48.8709, lng: 2.3030, nom: 'Le Cinq', etoiles: 3, cuisine: 'Française contemporaine', description: 'Institution parisienne à la cuisine précise et raffinée.' },
+  { ordre: 2, type: 'restaurant', ville: 'Paris', lat: 48.8656, lng: 2.3294, nom: 'Epicure', etoiles: 3, cuisine: 'Haute gastronomie française', description: 'Adresse de prestige aux produits d’exception et sauces magistrales.' },
+  { ordre: 3, type: 'restaurant', ville: 'Paris', lat: 48.8778, lng: 2.3190, nom: 'Guy Savoy', etoiles: 2, cuisine: 'Française', description: 'Cuisine emblématique, service d’excellence et expérience mémorable.' },
+  { ordre: 4, type: 'restaurant', ville: 'Paris', lat: 48.8725, lng: 2.3007, nom: 'Le Jules Verne', etoiles: 2, cuisine: 'Française moderne', description: 'Table gastronomique avec vue spectaculaire sur Paris.' },
+
+  { ordre: 5, type: 'restaurant', ville: 'Lyon', lat: 45.7677, lng: 4.8331, nom: 'Paul Bocuse', etoiles: 2, cuisine: 'Gastronomie lyonnaise', description: 'Maison iconique de la tradition culinaire lyonnaise.' },
+  { ordre: 6, type: 'restaurant', ville: 'Lyon', lat: 45.7590, lng: 4.8266, nom: 'La Mère Brazier', etoiles: 2, cuisine: 'Française classique', description: 'Grande maison lyonnaise au patrimoine culinaire exceptionnel.' },
+  { ordre: 7, type: 'restaurant', ville: 'Lyon', lat: 45.7580, lng: 4.8216, nom: 'Takao Takano', etoiles: 2, cuisine: 'Franco-japonaise', description: 'Cuisine d’auteur subtile, moderne et très technique.' },
+  { ordre: 8, type: 'restaurant', ville: 'Lyon', lat: 45.7648, lng: 4.8353, nom: 'Le Neuvième Art', etoiles: 2, cuisine: 'Créative', description: 'Assiettes graphiques et créativité gastronomique affirmée.' },
+
+  { ordre: 9, type: 'restaurant', ville: 'Rennes', lat: 48.1118, lng: -1.6803, nom: 'Racines', etoiles: 1, cuisine: 'Française contemporaine', description: 'Table rennaise raffinée, produits bretons et assiettes précises.' },
+  { ordre: 10, type: 'restaurant', ville: 'Rennes', lat: 48.1124, lng: -1.6791, nom: 'Ima', etoiles: 1, cuisine: 'Créative', description: 'Cuisine inventive, dressages modernes et belle lecture des saisons.' },
+  { ordre: 11, type: 'restaurant', ville: 'Rennes', lat: 48.1099, lng: -1.6781, nom: 'Le Ciel de Rennes', etoiles: 1, cuisine: 'Gastronomique française', description: 'Expérience gastronomique élégante avec forte identité locale.' },
+  { ordre: 12, type: 'restaurant', ville: 'Rennes', lat: 48.1141, lng: -1.6727, nom: 'Maison Kervarrec', etoiles: 2, cuisine: 'Bretonne contemporaine', description: 'Cuisine d’auteur en Bretagne, précise et profondément territoriale.' },
 ]
 
 const hotels: EtapeRoadtrip[] = [
-  {
-    ordre: 1,
-    type: 'hotel',
-    ville: 'Bourgogne',
-    lat: 47.0896,
-    lng: 4.7105,
-    nom: 'Relais de Bourgogne',
-    etoiles: 5,
-    ambiance: ['Luxe', 'Calme'],
-    description: 'Refuge gastronomique en Bourgogne',
-  },
-  {
-    ordre: 2,
-    type: 'hotel',
-    ville: 'Saint-Rémy-de-Provence',
-    lat: 43.7829,
-    lng: 4.8250,
-    nom: 'Château de Roussan',
-    etoiles: 5,
-    ambiance: ['Romantique', 'Nature'],
-    description: 'Charme provençal dans un cadre authentique',
-  },
-  {
-    ordre: 3,
-    type: 'hotel',
-    ville: 'Colmar',
-    lat: 48.0795,
-    lng: 7.3632,
-    nom: 'Maison Rouge',
-    etoiles: 4,
-    ambiance: ['Charme', 'Historique'],
-    description: 'Au cœur du patrimoine alsacien',
-  },
+  { ordre: 1, type: 'hotel', ville: 'Paris', lat: 48.8683, lng: 2.3000, nom: 'Four Seasons George V', etoiles: 5, ambiance: ['Luxe', 'Palace'], description: 'Palace parisien avec offre gastronomique de très haut niveau.' },
+  { ordre: 2, type: 'hotel', ville: 'Paris', lat: 48.8753, lng: 2.2945, nom: 'Shangri-La Paris', etoiles: 5, ambiance: ['Vue', 'Prestige'], description: 'Hôtel d’exception alliant raffinement asiatique et art de vivre français.' },
+  { ordre: 3, type: 'hotel', ville: 'Paris', lat: 48.8668, lng: 2.3286, nom: 'Le Bristol Paris', etoiles: 5, ambiance: ['Élégant', 'Classique'], description: 'Référence parisienne, service irréprochable et hospitalité premium.' },
+
+  { ordre: 4, type: 'hotel', ville: 'Lyon', lat: 45.7640, lng: 4.8270, nom: 'Villa Florentine', etoiles: 5, ambiance: ['Panoramique', 'Romantique'], description: 'Adresse de charme sur les hauteurs du Vieux Lyon.' },
+  { ordre: 5, type: 'hotel', ville: 'Lyon', lat: 45.7665, lng: 4.8502, nom: 'InterContinental Lyon - Hotel Dieu', etoiles: 5, ambiance: ['Patrimonial', 'Urbain'], description: 'Bâtiment historique emblématique au confort contemporain.' },
+  { ordre: 6, type: 'hotel', ville: 'Lyon', lat: 45.7706, lng: 4.8360, nom: 'Cour des Loges', etoiles: 5, ambiance: ['Historique', 'Intimiste'], description: 'Charme Renaissance et ambiance feutrée au cœur de la ville.' },
+
+  { ordre: 7, type: 'hotel', ville: 'Rennes', lat: 48.1110, lng: -1.6769, nom: 'Balthazar Hotel & Spa', etoiles: 5, ambiance: ['Spa', 'Élégant'], description: 'Hôtel de prestige au centre de Rennes, ambiance feutrée.' },
+  { ordre: 8, type: 'hotel', ville: 'Rennes', lat: 48.1093, lng: -1.6788, nom: 'Le Saint-Antoine Hotel & Spa', etoiles: 4, ambiance: ['Design', 'Bien-être'], description: 'Adresse contemporaine avec spa, idéale pour un séjour gastronomique.' },
+  { ordre: 9, type: 'hotel', ville: 'Rennes', lat: 48.1160, lng: -1.6800, nom: 'Mama Shelter Rennes', etoiles: 4, ambiance: ['Urbain', 'Lifestyle'], description: 'Hôtel moderne et vivant, confort premium au cœur de la ville.' },
 ]
 
-const selectedItems = ref<EtapeRoadtrip[]>([])
+const startCity = ref<(typeof cities)[number] | ''>('')
+const endCity = ref<(typeof cities)[number] | ''>('')
 const showMap = ref(false)
 
+const selectedRestaurantsForRoute = computed(() => {
+  if (!startCity.value || !endCity.value || startCity.value === endCity.value) {
+    return [] as EtapeRoadtrip[]
+  }
+
+  const startCityRestaurants = restaurants
+    .filter(r => r.ville === startCity.value)
+    .sort((a, b) => b.etoiles - a.etoiles)
+
+  const endCityRestaurants = restaurants
+    .filter(r => r.ville === endCity.value)
+    .sort((a, b) => b.etoiles - a.etoiles)
+
+  return [...startCityRestaurants, ...endCityRestaurants]
+})
+
 const selectedRouteEtapes = computed<EtapeRoadtrip[]>(() => {
-  return selectedItems.value.map((item, index) => ({
+  return selectedRestaurantsForRoute.value.map((item, index) => ({
     ...item,
     ordre: index + 1,
   }))
 })
+
+const selectedItems = selectedRouteEtapes
 
 const toggleSelection = (item: EtapeRoadtrip) => {
   const index = selectedItems.value.findIndex(
@@ -235,29 +83,28 @@ const isSelected = (item: EtapeRoadtrip) => {
   return selectedItems.value.some(sel => sel.nom === item.nom && sel.type === item.type)
 }
 
-const allItems = computed(() => {
-  return [...restaurants, ...hotels].sort((a, b) => {
-    // Grouper par ville
-    if (a.ville !== b.ville) return a.ville.localeCompare(b.ville)
-    return a.type === 'restaurant' ? -1 : 1
-  })
+const canViewMap = computed(() => {
+  return !!startCity.value && !!endCity.value && startCity.value !== endCity.value
 })
 
 const viewMap = () => {
-  if (selectedItems.value.length >= 2) {
+  if (canViewMap.value) {
     showMap.value = true
   }
 }
 
-const groupedByVille = computed(() => {
-  const groups = new Map<string, EtapeRoadtrip[]>()
-  allItems.value.forEach(item => {
-    if (!groups.has(item.ville)) {
-      groups.set(item.ville, [])
-    }
-    groups.get(item.ville)!.push(item)
-  })
-  return Array.from(groups.entries()).map(([ville, items]) => ({ ville, items }))
+const groupedRestaurantsByVille = computed(() => {
+  return cities.map((ville) => ({
+    ville,
+    items: restaurants.filter(r => r.ville === ville),
+  }))
+})
+
+const groupedHotelsByVille = computed(() => {
+  return cities.map((ville) => ({
+    ville,
+    items: hotels.filter(h => h.ville === ville),
+  }))
 })
 </script>
 
@@ -275,54 +122,58 @@ const groupedByVille = computed(() => {
     <div v-if="!showMap" class="selection-view">
       <div class="sidebar">
         <div class="selection-info">
-          <h3 class="info-title">Votre Sélection</h3>
-          <p class="info-count">{{ selectedItems.length }} étape{{ selectedItems.length !== 1 ? 's' : '' }} sélectionnée{{ selectedItems.length !== 1 ? 's' : '' }}</p>
+          <h3 class="info-title">Votre Trajet</h3>
+          <p class="info-count">Choisissez votre ville de départ et d'arrivée</p>
 
-          <div v-if="selectedItems.length > 0" class="selected-list">
-            <div v-for="(item, index) in selectedItems" :key="`selected-${index}`" class="selected-item">
-              <span class="selected-index">{{ index + 1 }}</span>
-              <div class="selected-info">
-                <p class="selected-name">{{ item.nom }}</p>
-                <p class="selected-location">{{ item.ville }}</p>
-              </div>
-              <button
-                @click="toggleSelection(item)"
-                class="remove-btn"
-              >
-                ✕
-              </button>
-            </div>
+          <div class="city-selectors">
+            <label class="selector-label" for="startCity">Ville de départ</label>
+            <select id="startCity" v-model="startCity" class="city-select">
+              <option value="">Choisir une ville</option>
+              <option v-for="ville in cities" :key="`start-${ville}`" :value="ville">{{ ville }}</option>
+            </select>
+
+            <label class="selector-label" for="endCity">Ville d'arrivée</label>
+            <select id="endCity" v-model="endCity" class="city-select">
+              <option value="">Choisir une ville</option>
+              <option v-for="ville in cities" :key="`end-${ville}`" :value="ville">{{ ville }}</option>
+            </select>
           </div>
 
-          <div v-else class="empty-selection">
-            <p>Aucune sélection pour le moment</p>
+          <div v-if="canViewMap" class="selected-list">
+            <div class="selected-item">
+              <span class="selected-index">✓</span>
+              <div class="selected-info">
+                <p class="selected-name">{{ startCity }} → {{ endCity }}</p>
+                <p class="selected-location">{{ selectedRouteEtapes.length }} restaurants affichés sur la carte</p>
+              </div>
+            </div>
           </div>
 
           <button
             @click="viewMap"
             class="view-map-button"
-            :disabled="selectedItems.length < 2"
+            :disabled="!canViewMap"
           >
-            {{ selectedItems.length < 2 ? 'Sélectionnez au moins 2 étapes' : 'Voir la carte du trajet' }}
+            {{ !canViewMap ? 'Choisissez 2 villes différentes' : 'Voir la carte des restaurants' }}
           </button>
         </div>
       </div>
 
       <!-- Items Grid -->
       <div class="items-view">
-        <div v-for="group in groupedByVille" :key="group.ville" class="ville-section">
-          <h2 class="ville-title">{{ group.ville }}</h2>
+        <h2 class="group-title">Restaurants etoiles & gastronomiques</h2>
+        <div v-for="group in groupedRestaurantsByVille" :key="`restaurant-${group.ville}`" class="ville-section">
+          <h3 class="ville-title">{{ group.ville }}</h3>
           <div class="items-grid">
             <div
               v-for="item in group.items"
-              :key="`${item.type}-${item.nom}`"
-              @click="toggleSelection(item)"
+              :key="`restaurant-${item.nom}`"
               :class="['item-card', { selected: isSelected(item) }]"
             >
               <div class="item-header">
-                <span class="item-type">{{ item.type === 'restaurant' ? '🍽️' : '🏨' }}</span>
+                <span class="item-type">🍽️</span>
                 <span class="item-rating">
-                  <StarRating :count="item.etoiles" :use-logo="item.type === 'restaurant'" />
+                  <StarRating :count="item.etoiles" :use-logo="true" />
                 </span>
               </div>
 
@@ -331,8 +182,33 @@ const groupedByVille = computed(() => {
               <p class="item-description">{{ item.description }}</p>
 
               <div class="item-footer">
-                <span class="item-badge">{{ item.type === 'restaurant' ? 'Restaurant' : 'Hôtel' }}</span>
-                <span v-if="isSelected(item)" class="item-check">✓ Sélectionné</span>
+                <span class="item-badge">Restaurant</span>
+                <span v-if="isSelected(item)" class="item-check">✓ Sur l'itinéraire</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="group-title">Hotels</h2>
+        <div v-for="group in groupedHotelsByVille" :key="`hotel-${group.ville}`" class="ville-section">
+          <h3 class="ville-title">{{ group.ville }}</h3>
+          <div class="items-grid">
+            <div
+              v-for="item in group.items"
+              :key="`hotel-${item.nom}`"
+              :class="['item-card']"
+            >
+              <div class="item-header">
+                <span class="item-type">🏨</span>
+                <span class="item-rating">{{ '★'.repeat(item.etoiles) }}</span>
+              </div>
+
+              <h3 class="item-name">{{ item.nom }}</h3>
+              <p class="item-description">{{ item.description }}</p>
+
+              <div class="item-footer">
+                <span class="item-badge">Hôtel</span>
+                <span class="item-check">Hors itinéraire map</span>
               </div>
             </div>
           </div>
@@ -353,7 +229,7 @@ const groupedByVille = computed(() => {
 <style scoped>
 .custom-select-container {
   --color-black: #ffffff;
-  --color-cream: #ffffff;
+  --color-cream: #0a0a08;
   --color-gold: #111111;
   min-height: 100vh;
   background-color: var(--color-black);
@@ -384,6 +260,7 @@ const groupedByVille = computed(() => {
   font-family: var(--font-serif);
   font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: 300;
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
@@ -410,8 +287,8 @@ const groupedByVille = computed(() => {
 }
 
 .selection-info {
-  background: linear-gradient(135deg, rgba(184, 151, 90, 0.1) 0%, rgba(200, 16, 46, 0.05) 100%);
-  border: 1px solid rgba(200, 16, 46, 0.3);
+  background: linear-gradient(135deg, rgba(200, 16, 46, 0.12) 0%, rgba(200, 16, 46, 0.04) 100%);
+  border: 2px solid rgba(200, 16, 46, 0.35);
   border-radius: 8px;
   padding: 1.5rem;
 }
@@ -420,6 +297,7 @@ const groupedByVille = computed(() => {
   font-family: var(--font-serif);
   font-size: 1.25rem;
   margin: 0 0 0.5rem 0;
+  color: #000;
 }
 
 .info-count {
@@ -427,6 +305,30 @@ const groupedByVille = computed(() => {
   font-size: 0.875rem;
   color: var(--color-gold);
   margin: 0 0 1rem 0;
+}
+
+.city-selectors {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.selector-label {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.city-select {
+  width: 100%;
+  border: 1px solid rgba(200, 16, 46, 0.35);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #111111;
 }
 
 .selected-list {
@@ -471,6 +373,7 @@ const groupedByVille = computed(() => {
   font-size: 0.875rem;
   font-weight: 600;
   margin: 0;
+  color: #000000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -507,10 +410,10 @@ const groupedByVille = computed(() => {
 .view-map-button {
   width: 100%;
   padding: 0.875rem;
-  background-color: var(--color-red);
-  color: var(--color-cream);
-  border: none;
-  border-radius: 6px;
+  background-color: rgba(200, 16, 46, 0.2);
+  color: var(--color-red);
+  border: 2px solid rgba(200, 16, 46, 0.35);
+  border-radius: 8px;
   font-family: var(--font-sans);
   font-weight: 600;
   cursor: pointer;
@@ -523,13 +426,22 @@ const groupedByVille = computed(() => {
 }
 
 .view-map-button:hover {
-  background-color: rgba(200, 16, 46, 0.8);
+  background-color: rgba(200, 16, 46, 0.28);
+  border-color: var(--color-red);
   transform: translateY(-2px);
 }
 
 /* Items View */
 .items-view {
   flex: 1;
+}
+
+.group-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 300;
+  margin: 0 0 1.25rem 0;
+  color: #000000;
 }
 
 .ville-section {
@@ -541,7 +453,7 @@ const groupedByVille = computed(() => {
   font-size: 1.75rem;
   font-weight: 300;
   margin: 0 0 1.5rem 0;
-  color: var(--color-cream);
+  color: #000000;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid rgba(200, 16, 46, 0.2);
 }
@@ -553,24 +465,25 @@ const groupedByVille = computed(() => {
 }
 
 .item-card {
-  background: linear-gradient(135deg, rgba(184, 151, 90, 0.08) 0%, rgba(200, 16, 46, 0.03) 100%);
-  border: 2px solid rgba(200, 16, 46, 0.2);
+  background: linear-gradient(135deg, rgba(184, 151, 90, 0.1) 0%, rgba(200, 16, 46, 0.05) 100%);
+  border: 1px solid rgba(200, 16, 46, 0.3);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .item-card:hover {
-  border-color: var(--color-gold);
+  border-color: var(--color-red);
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(184, 151, 90, 0.15);
+  box-shadow: 0 10px 40px rgba(200, 16, 46, 0.2);
 }
 
 .item-card.selected {
-  background: linear-gradient(135deg, rgba(200, 16, 46, 0.2) 0%, rgba(184, 151, 90, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(200, 16, 46, 0.2) 0%, rgba(200, 16, 46, 0.1) 100%);
   border-color: var(--color-red);
   box-shadow: 0 8px 30px rgba(200, 16, 46, 0.25);
 }
@@ -578,8 +491,8 @@ const groupedByVille = computed(() => {
 .item-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .item-type {
@@ -597,6 +510,7 @@ const groupedByVille = computed(() => {
   font-size: 1.25rem;
   font-weight: 400;
   margin: 0 0 0.5rem 0;
+  color: #000000;
 }
 
 .item-cuisine {
@@ -609,10 +523,10 @@ const groupedByVille = computed(() => {
 
 .item-description {
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--color-gray);
-  margin: 0 0 1rem 0;
-  line-height: 1.5;
+  margin: 0;
+  line-height: 1.6;
   flex: 1;
 }
 
@@ -620,8 +534,8 @@ const groupedByVille = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(200, 16, 46, 0.15);
+  padding-top: 1rem;
+  border-top: 1px solid rgba(200, 16, 46, 0.2);
 }
 
 .item-badge {
@@ -629,10 +543,10 @@ const groupedByVille = computed(() => {
   font-size: 0.75rem;
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--color-cream);
   background-color: rgba(200, 16, 46, 0.3);
   padding: 0.25rem 0.65rem;
   border-radius: 4px;
+  color: var(--color-red);
 }
 
 .item-check {

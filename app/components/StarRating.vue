@@ -33,14 +33,18 @@ withDefaults(
 .star-rating {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
   line-height: 1;
+  vertical-align: middle;
 }
 
 .star-logo {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
+  width: 20px;
+  height: 20px;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 </style>
 

@@ -21,14 +21,12 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
         @click="activeTab = 'predefined'"
         :class="['tab-button', { active: activeTab === 'predefined' }]"
       >
-        <span class="tab-icon">🗺️</span>
         <span class="tab-label">Voyages Prédéfinis</span>
       </button>
       <button
         @click="activeTab = 'custom'"
         :class="['tab-button', { active: activeTab === 'custom' }]"
       >
-        <span class="tab-icon">✨</span>
         <span class="tab-label">Créer Mon Voyage</span>
       </button>
     </div>
@@ -81,15 +79,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
           <div class="custom-icon">🗺️</div>
           <h3 class="custom-title">Visualiser votre trajet</h3>
           <p class="custom-desc">Visualisez le chemin complet de votre aventure sur une carte interactive</p>
-          <button disabled class="custom-button disabled">
-            Bientôt disponible
-          </button>
-        </div>
-
-        <div class="custom-card">
-          <div class="custom-icon">💾</div>
-          <h3 class="custom-title">Sauvegarder & Partager</h3>
-          <p class="custom-desc">Enregistrez votre voyage et partagez-le avec vos amis</p>
           <button disabled class="custom-button disabled">
             Bientôt disponible
           </button>
@@ -308,7 +297,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 
 .custom-card {
   background: linear-gradient(135deg, rgba(184, 151, 90, 0.15) 0%, rgba(200, 16, 46, 0.08) 100%);
-  border: 2px solid rgba(184, 151, 90, 0.3);
+  border: 2px solid #c8102e;
   border-radius: 12px;
   padding: 2.5rem 2rem;
   text-align: center;
@@ -349,13 +338,13 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 .custom-button {
   display: inline-block;
   padding: 0.875rem 1.75rem;
-  background-color: var(--color-gold);
-  color: var(--color-black);
+  background-color: rgba(200, 16, 46, 0.2);
+  color: var(--color-red);
   text-decoration: none;
   font-family: var(--font-sans);
   font-weight: 600;
-  border: none;
-  border-radius: 6px;
+  border: 2px solid rgba(200, 16, 46, 0.35);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.95rem;
@@ -363,13 +352,14 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 }
 
 .custom-button:hover:not(.disabled) {
-  background-color: var(--color-red);
-  color: var(--color-cream);
+  background-color: rgba(200, 16, 46, 0.28);
+  border-color: var(--color-red);
+  color: var(--color-red);
   transform: translateY(-2px);
 }
 
 .custom-button.disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
