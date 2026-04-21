@@ -353,7 +353,7 @@ const groupedByVille = computed(() => {
 <style scoped>
 .custom-select-container {
   --color-black: #ffffff;
-  --color-cream: #0a0a08;
+  --color-cream: #ffffff;
   --color-gold: #111111;
   min-height: 100vh;
   background-color: var(--color-black);
