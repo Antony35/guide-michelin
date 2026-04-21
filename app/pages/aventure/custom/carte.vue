@@ -2,19 +2,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
-import { useVoyageData, VILLES_DISPONIBLES } from '~/composables/useVoyageData'
-import type { EtapeRoadtrip } from '~/types'
+import { useVoyageData, CITIES } from '~/composables/useVoyageData'
+import type { Restaurant, Hotel } from '~/types'
 
 definePageMeta({ layout: false })
 
 const route = useRoute()
 const router = useRouter()
 const store = useVoyageStore()
-const { getVilleCoords, getItemsForCities } = useVoyageData()
+const { getCity, getItemsForCities } = useVoyageData()
 
 const showEtapeModal = ref(false)
 const sheetOpen = ref(false)
 const newEtapeNom = ref('')
+const newEtapeDate = ref('')
 
 // ─── Initialisation depuis query params ───────────────────────────────────────
 
@@ -27,53 +28,64 @@ onMounted(() => {
     return
   }
 
-  const depart = getVilleCoords(departNom)
-  const arrivee = getVilleCoords(arriveeNom)
+  const depart = getCity(departNom)
+  const arrivee = getCity(arriveeNom)
 
   if (!depart || !arrivee) {
     router.replace('/aventure/custom/select')
     return
   }
 
-  store.reset()
-  store.setDepart(depart)
-  store.setArrivee(arrivee)
+  const dateDepart = route.query.dateDepart as string | undefined
+  const dateArrivee = route.query.dateArrivee as string | undefined
+  store.initVoyage(depart, arrivee, dateDepart, dateArrivee)
 })
 
 // ─── Data réactive ────────────────────────────────────────────────────────────
 
 const mapData = computed(() => {
   if (!store.depart || !store.arrivee) return null
-  const { restaurants, hotels } = getItemsForCities(store.allVilleNames)
+  const { restaurants, hotels } = getItemsForCities(store.allCityNames)
   return { restaurants, hotels }
 })
 
 const etapesDisponibles = computed(() =>
-  VILLES_DISPONIBLES.filter(v => !store.allVilleNames.includes(v.nom))
+  CITIES.filter(c => !store.allCityNames.includes(c.city))
 )
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-function onSelectRestaurant(item: EtapeRoadtrip) {
-  store.selectRestaurant(item)
+function onSelectRestaurant(item: Restaurant) {
+  store.setSelectedItem(item, 'restaurant')
   sheetOpen.value = true
 }
 
-function onSelectHotel(item: EtapeRoadtrip) {
-  store.selectHotel(item)
+function onSelectHotel(item: Hotel) {
+  store.setSelectedItem(item, 'hotel')
   sheetOpen.value = true
+}
+
+function ouvrirModalEtape() {
+  const arriveeDate = store.jours[store.jours.length - 1]?.date
+  newEtapeDate.value = arriveeDate
+    ? new Date(new Date(arriveeDate).getTime() - 86400000).toISOString().split('T')[0]
+    : ''
+  showEtapeModal.value = true
 }
 
 function ajouterEtape() {
   if (!newEtapeNom.value) return
-  const ville = getVilleCoords(newEtapeNom.value)
-  if (ville) store.addEtape(ville)
+  const ville = getCity(newEtapeNom.value)
+  if (ville) store.addEtape(ville, newEtapeDate.value || undefined)
   newEtapeNom.value = ''
+  newEtapeDate.value = ''
   showEtapeModal.value = false
-}
-
-function retirerEtape(nom: string) {
-  store.removeEtape(nom)
 }
 </script>
 
@@ -96,7 +108,7 @@ function retirerEtape(nom: string) {
         />
 
         <!-- FAB ajouter étape -->
-        <button class="fab-etape" @click="showEtapeModal = true" title="Ajouter une étape">
+        <button class="fab-etape" @click="ouvrirModalEtape" title="Ajouter une étape">
           <span class="fab-icon">+</span>
           <span class="fab-label">Étape</span>
         </button>
@@ -113,22 +125,24 @@ function retirerEtape(nom: string) {
           <div class="sheet-section">
             <h3 class="sheet-title">Votre itinéraire</h3>
             <div class="route-summary">
-              <div class="route-city">
-                <span class="city-dot depart" />
-                <span>{{ store.depart.nom }}</span>
-              </div>
               <div
-                v-for="(etape, i) in store.etapes"
-                :key="etape.nom"
-                class="route-city route-etape"
+                v-for="(jour, i) in store.jours"
+                :key="jour.id"
+                class="route-jour"
               >
-                <span class="city-dot etape">{{ i + 1 }}</span>
-                <span>{{ etape.nom }}</span>
-                <button class="remove-etape" @click="retirerEtape(etape.nom)">×</button>
-              </div>
-              <div class="route-city">
-                <span class="city-dot arrivee" />
-                <span>{{ store.arrivee.nom }}</span>
+                <div class="jour-header">
+                  <span
+                    class="city-dot"
+                    :class="i === 0 ? 'depart' : i === store.jours.length - 1 ? 'arrivee' : 'etape'"
+                  >{{ i === 0 ? 'D' : i === store.jours.length - 1 ? 'A' : i }}</span>
+                  <span class="jour-city">{{ jour.city.city }}</span>
+                  <span class="jour-date">{{ formatDate(jour.date) }}</span>
+                  <button
+                    v-if="i > 0 && i < store.jours.length - 1"
+                    class="remove-etape"
+                    @click="store.removeJour(jour.id)"
+                  >×</button>
+                </div>
               </div>
             </div>
           </div>
@@ -140,10 +154,10 @@ function retirerEtape(nom: string) {
               <div class="selected-header">
                 <span class="selected-emoji">🍽️</span>
                 <div>
-                  <p class="selected-name">{{ store.selectedRestaurant.nom }}</p>
-                  <p class="selected-sub">{{ store.selectedRestaurant.ville }} · {{ store.selectedRestaurant.cuisine }}</p>
+                  <p class="selected-name">{{ store.selectedRestaurant.name }}</p>
+                  <p class="selected-sub">{{ store.selectedRestaurant.city }} · {{ store.selectedRestaurant.style }}</p>
                 </div>
-                <button class="deselect-btn" @click="store.selectedRestaurant = null">×</button>
+                <button class="deselect-btn" @click="store.setSelectedItem(null)">×</button>
               </div>
             </div>
           </div>
@@ -155,10 +169,10 @@ function retirerEtape(nom: string) {
               <div class="selected-header">
                 <span class="selected-emoji">🏨</span>
                 <div>
-                  <p class="selected-name">{{ store.selectedHotel.nom }}</p>
-                  <p class="selected-sub">{{ store.selectedHotel.ville }} · {{ '★'.repeat(store.selectedHotel.etoiles) }}</p>
+                  <p class="selected-name">{{ store.selectedHotel.name }}</p>
+                  <p class="selected-sub">{{ store.selectedHotel.city }} · {{ '★'.repeat(Number(store.selectedHotel.stars)) }}</p>
                 </div>
-                <button class="deselect-btn" @click="store.selectedHotel = null">×</button>
+                <button class="deselect-btn" @click="store.setSelectedItem(null)">×</button>
               </div>
             </div>
           </div>
@@ -184,10 +198,21 @@ function retirerEtape(nom: string) {
 
           <select v-model="newEtapeNom" class="modal-select">
             <option value="">Sélectionner une ville</option>
-            <option v-for="ville in etapesDisponibles" :key="ville.nom" :value="ville.nom">
-              {{ ville.nom }}
+            <option v-for="ville in etapesDisponibles" :key="ville.city" :value="ville.city">
+              {{ ville.city }}
             </option>
           </select>
+
+          <div class="modal-date-group">
+            <label class="modal-date-label">Date de passage</label>
+            <input
+              v-model="newEtapeDate"
+              type="date"
+              class="modal-select"
+              :min="store.jours[0]?.date"
+              :max="store.jours[store.jours.length - 1]?.date"
+            />
+          </div>
 
           <div class="modal-actions">
             <button class="modal-btn modal-cancel" @click="showEtapeModal = false">Annuler</button>
@@ -304,9 +329,12 @@ function retirerEtape(nom: string) {
 .route-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
-.route-city {
+
+.route-jour {}
+
+.jour-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -314,26 +342,33 @@ function retirerEtape(nom: string) {
   font-size: 0.9rem;
   color: #1a2224;
 }
-.route-etape { padding-left: 0; }
+
+.jour-city {
+  font-weight: 600;
+}
+
+.jour-date {
+  font-size: 0.75rem;
+  color: #9aabae;
+  margin-left: auto;
+}
 
 .city-dot {
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-.city-dot.depart { background: #b8975a; }
-.city-dot.arrivee { background: #c8102e; }
-.city-dot.etape {
-  background: #8a8680;
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-sans);
 }
+.city-dot.depart { background: #b8975a; }
+.city-dot.arrivee { background: #c8102e; }
+.city-dot.etape { background: #8a8680; }
 
 .remove-etape {
   margin-left: auto;
@@ -449,6 +484,20 @@ function retirerEtape(nom: string) {
   font-size: 1rem;
 }
 .modal-select:focus { outline: none; border-color: #c8102e; }
+
+.modal-date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.modal-date-label {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7a8a8c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 
 .modal-actions {
   display: flex;

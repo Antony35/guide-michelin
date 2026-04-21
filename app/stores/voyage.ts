@@ -1,59 +1,147 @@
 import { defineStore } from 'pinia'
-import type { EtapeRoadtrip, Ville } from '~/types'
+import type { City, Restaurant, Hotel, JourVoyage } from '~/types'
+
+function uid(): string {
+  return Math.random().toString(36).slice(2, 9)
+}
+
+function todayISO(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+function addDays(isoDate: string, days: number): string {
+  const d = new Date(isoDate)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
 
 export const useVoyageStore = defineStore('voyage', {
   state: () => ({
-    depart: null as Ville | null,
-    arrivee: null as Ville | null,
-    etapes: [] as Ville[],
-    selectedRestaurant: null as EtapeRoadtrip | null,
-    selectedHotel: null as EtapeRoadtrip | null,
+    jours: [] as JourVoyage[],
+    selectedItem: null as Restaurant | Hotel | null,
+    selectedItemType: null as 'restaurant' | 'hotel' | null,
+    activeJourId: null as string | null,
+    showRestaurants: true,
+    showHotels: true,
   }),
 
   getters: {
-    allVilles(state): Ville[] {
-      const villes: Ville[] = []
-      if (state.depart) villes.push(state.depart)
-      villes.push(...state.etapes)
-      if (state.arrivee) villes.push(state.arrivee)
-      return villes
+    depart(state): City | null {
+      return state.jours[0]?.city ?? null
     },
-    allVilleNames(state): string[] {
-      const names: string[] = []
-      if (state.depart) names.push(state.depart.nom)
-      state.etapes.forEach(e => names.push(e.nom))
-      if (state.arrivee) names.push(state.arrivee.nom)
-      return names
+    arrivee(state): City | null {
+      return state.jours.length > 1 ? state.jours[state.jours.length - 1]?.city ?? null : null
+    },
+    etapes(state): City[] {
+      return state.jours.slice(1, -1).map(j => j.city)
+    },
+    etapesJours(state): JourVoyage[] {
+      return state.jours.slice(1, -1)
+    },
+    allCities(state): City[] {
+      return state.jours.map(j => j.city)
+    },
+    allCityNames(state): string[] {
+      return state.jours.map(j => j.city.city)
+    },
+    activeJour(state): JourVoyage | null {
+      return state.jours.find(j => j.id === state.activeJourId) ?? null
+    },
+    selectedRestaurant(state): Restaurant | null {
+      return state.selectedItemType === 'restaurant' ? state.selectedItem as Restaurant : null
+    },
+    selectedHotel(state): Hotel | null {
+      return state.selectedItemType === 'hotel' ? state.selectedItem as Hotel : null
     },
   },
 
   actions: {
-    setDepart(ville: Ville) {
-      this.depart = ville
+    initVoyage(depart: City, arrivee: City, dateDepart?: string, dateArrivee?: string) {
+      const startDate = dateDepart ?? todayISO()
+      const endDate = dateArrivee ?? addDays(startDate, 1)
+      this.jours = [
+        { id: uid(), date: startDate, city: depart, hotel: null, restaurants: [] },
+        { id: uid(), date: endDate, city: arrivee, hotel: null, restaurants: [] },
+      ]
+      this.selectedItem = null
+      this.selectedItemType = null
+      this.activeJourId = this.jours[0].id
+      this.showRestaurants = true
+      this.showHotels = true
     },
-    setArrivee(ville: Ville) {
-      this.arrivee = ville
+
+    addEtape(city: City, date?: string) {
+      if (this.jours.length < 2) return
+      if (this.jours.some(j => j.city.city === city.city)) return
+      const last = this.jours[this.jours.length - 1]
+      const newJour: JourVoyage = {
+        id: uid(),
+        date: date ?? addDays(last.date, -1),
+        city,
+        hotel: null,
+        restaurants: [],
+      }
+      this.jours.splice(this.jours.length - 1, 0, newJour)
     },
-    addEtape(ville: Ville) {
-      if (!this.etapes.find(e => e.nom === ville.nom)) {
-        this.etapes.push(ville)
+
+    removeJour(id: string) {
+      const idx = this.jours.findIndex(j => j.id === id)
+      if (idx <= 0 || idx >= this.jours.length - 1) return
+      this.jours.splice(idx, 1)
+    },
+
+    setDate(jourId: string, date: string) {
+      const jour = this.jours.find(j => j.id === jourId)
+      if (jour) jour.date = date
+    },
+
+    setHotel(jourId: string, hotel: Hotel) {
+      const jour = this.jours.find(j => j.id === jourId)
+      if (!jour) return
+      jour.hotel = jour.hotel?.id === hotel.id ? null : hotel
+    },
+
+    addRestaurant(jourId: string, restaurant: Restaurant) {
+      const jour = this.jours.find(j => j.id === jourId)
+      if (!jour || jour.restaurants.length >= 3) return
+      if (!jour.restaurants.find(r => r.id === restaurant.id)) {
+        jour.restaurants.push(restaurant)
       }
     },
-    removeEtape(nom: string) {
-      this.etapes = this.etapes.filter(e => e.nom !== nom)
+
+    removeRestaurant(jourId: string, restaurantId: number) {
+      const jour = this.jours.find(j => j.id === jourId)
+      if (jour) jour.restaurants = jour.restaurants.filter(r => r.id !== restaurantId)
     },
-    selectRestaurant(item: EtapeRoadtrip) {
-      this.selectedRestaurant = this.selectedRestaurant?.nom === item.nom ? null : item
+
+    setSelectedItem(item: Restaurant | Hotel | null, type: 'restaurant' | 'hotel' | null = null) {
+      if (!item) {
+        this.selectedItem = null
+        this.selectedItemType = null
+        return
+      }
+      if (this.selectedItem?.id === item.id && this.selectedItemType === type) {
+        this.selectedItem = null
+        this.selectedItemType = null
+        return
+      }
+      this.selectedItem = item
+      this.selectedItemType = type
+      const itemCity = (item as Restaurant).city
+      const jour = this.jours.find(j => j.city.city.toLowerCase() === itemCity.toLowerCase())
+      if (jour) this.activeJourId = jour.id
     },
-    selectHotel(item: EtapeRoadtrip) {
-      this.selectedHotel = this.selectedHotel?.nom === item.nom ? null : item
-    },
+
+    toggleRestaurants() { this.showRestaurants = !this.showRestaurants },
+    toggleHotels() { this.showHotels = !this.showHotels },
+
     reset() {
-      this.depart = null
-      this.arrivee = null
-      this.etapes = []
-      this.selectedRestaurant = null
-      this.selectedHotel = null
+      this.jours = []
+      this.selectedItem = null
+      this.selectedItemType = null
+      this.activeJourId = null
+      this.showRestaurants = true
+      this.showHotels = true
     },
   },
 })

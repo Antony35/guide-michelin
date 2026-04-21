@@ -1,32 +1,52 @@
+// ─── Types JSON (custom trip builder) ───────────────────────────────────────
+
+export interface City {
+  city: string
+  lat: number
+  lng: number
+}
+
+export type StarLevel = 'none' | 'bib' | 'one' | 'two' | 'three'
+
 export interface Restaurant {
-  id?: string
-  nom: string
-  chef?: string
-  etoiles: 1 | 2 | 3
-  ville: string
-  arrondissement?: string
-  adresse?: string
-  cuisine: string
-  ambiance?: string[]
-  budget?: 'moyen' | 'haut' | 'tres-haut'
+  id: number
+  citySlug: string
+  name: string
+  city: string
+  lat: number
+  lng: number
+  stars: StarLevel
+  style: string
   description: string
-  signature?: string
-  lat?: number
-  lng?: number
+  adresse?: string
+  price?: string
+  visited?: boolean
 }
 
 export interface Hotel {
-  id?: string
-  nom: string
-  ville: string
-  region?: string
-  etoiles: 4 | 5
-  ambiance: string[]
+  id: number
+  citySlug: string
+  name: string
+  city: string
+  lat: number
+  lng: number
+  stars: string
+  style: string
   description: string
-  highlight?: string
-  lat?: number
-  lng?: number
+  adresse?: string
+  price?: string
+  visited?: boolean
 }
+
+export interface JourVoyage {
+  id: string
+  date: string
+  city: City
+  hotel: Hotel | null
+  restaurants: Restaurant[]
+}
+
+// ─── Types prédéfinis (voyages prédéfinis — non modifiés) ────────────────────
 
 export interface EtapeRoadtrip {
   ordre: number
@@ -48,10 +68,3 @@ export interface Roadtrip {
   duree: string
   etapes: EtapeRoadtrip[]
 }
-
-export interface Ville {
-  nom: string
-  lat: number
-  lng: number
-}
-

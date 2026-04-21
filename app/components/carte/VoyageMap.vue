@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import type { EtapeRoadtrip, Ville } from '~/types'
+import type { City, Restaurant, Hotel } from '~/types'
 import restaurantLogoSrc from '~/assets/logo.svg'
 
 interface Props {
-  depart: Ville
-  arrivee: Ville
-  etapes?: Ville[]
-  restaurants?: EtapeRoadtrip[]
-  hotels?: EtapeRoadtrip[]
-  selectedRestaurant?: EtapeRoadtrip | null
-  selectedHotel?: EtapeRoadtrip | null
+  depart: City
+  arrivee: City
+  etapes?: City[]
+  restaurants?: Restaurant[]
+  hotels?: Hotel[]
+  selectedRestaurant?: Restaurant | null
+  selectedHotel?: Hotel | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,8 +21,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'select-restaurant': [item: EtapeRoadtrip]
-  'select-hotel': [item: EtapeRoadtrip]
+  'select-restaurant': [item: Restaurant]
+  'select-hotel': [item: Hotel]
 }>()
 
 const mapContainer = ref<HTMLElement | null>(null)
@@ -101,18 +100,18 @@ function drawAll() {
 
   // Départ
   L.marker([props.depart.lat, props.depart.lng], { icon: cityIcon(L, '#b8975a', 'D') })
-    .bindPopup(`<div class="vmap-popup"><strong>${props.depart.nom}</strong><br><span class="vmap-badge vmap-badge-depart">Départ</span></div>`)
+    .bindPopup(`<div class="vmap-popup"><strong>${props.depart.city}</strong><br><span class="vmap-badge vmap-badge-depart">Départ</span></div>`)
     .addTo(map)
 
   // Arrivée
   L.marker([props.arrivee.lat, props.arrivee.lng], { icon: cityIcon(L, '#c8102e', 'A') })
-    .bindPopup(`<div class="vmap-popup"><strong>${props.arrivee.nom}</strong><br><span class="vmap-badge vmap-badge-arrivee">Arrivée</span></div>`)
+    .bindPopup(`<div class="vmap-popup"><strong>${props.arrivee.city}</strong><br><span class="vmap-badge vmap-badge-arrivee">Arrivée</span></div>`)
     .addTo(map)
 
   // Étapes intermédiaires
   props.etapes.forEach((ville, i) => {
     L!.marker([ville.lat, ville.lng], { icon: etapeIcon(L!, String(i + 1)) })
-      .bindPopup(`<div class="vmap-popup"><strong>${ville.nom}</strong><br><span class="vmap-badge">Étape ${i + 1}</span></div>`)
+      .bindPopup(`<div class="vmap-popup"><strong>${ville.city}</strong><br><span class="vmap-badge">Étape ${i + 1}</span></div>`)
       .addTo(map!)
   })
 
@@ -124,20 +123,27 @@ function drawAll() {
     dashArray: '8, 8',
   }).addTo(map)
 
+  const starsLabel: Record<string, string> = {
+    none: '', bib: 'Bib Gourmand', one: '★', two: '★★', three: '★★★',
+  }
+
   // Restaurants
   props.restaurants.forEach(r => {
-    const isSelected = props.selectedRestaurant?.nom === r.nom
-    const ratingHtml = Array.from({ length: r.etoiles })
-      .map(() => `<img src="${restaurantLogoSrc}" class="vmap-logo-star" alt=""/>`)
-      .join('')
+    const isSelected = props.selectedRestaurant?.id === r.id
+    const rating = starsLabel[r.stars] ?? ''
+    const ratingHtml = ['one', 'two', 'three'].includes(r.stars)
+      ? Array.from({ length: r.stars === 'one' ? 1 : r.stars === 'two' ? 2 : 3 })
+          .map(() => `<img src="${restaurantLogoSrc}" class="vmap-logo-star" alt=""/>`)
+          .join('')
+      : `<span style="font-size:0.75rem;color:#b8975a">${rating}</span>`
     const popup = `
       <div class="vmap-popup">
         <div class="vmap-popup-type">Restaurant Michelin</div>
-        <strong class="vmap-popup-name">${r.nom}</strong>
+        <strong class="vmap-popup-name">${r.name}</strong>
         <div class="vmap-popup-rating">${ratingHtml}</div>
-        <em class="vmap-popup-cuisine">${r.cuisine ?? ''}</em>
+        <em class="vmap-popup-cuisine">${r.style}</em>
         <p class="vmap-popup-desc">${r.description}</p>
-        <button class="vmap-select-btn" data-type="restaurant" data-nom="${r.nom}">
+        <button class="vmap-select-btn" data-type="restaurant" data-id="${r.id}">
           ${isSelected ? '✓ Sélectionné' : 'Choisir ce restaurant'}
         </button>
       </div>`
@@ -152,15 +158,15 @@ function drawAll() {
 
   // Hôtels
   props.hotels.forEach(h => {
-    const isSelected = props.selectedHotel?.nom === h.nom
-    const stars = '★'.repeat(h.etoiles)
+    const isSelected = props.selectedHotel?.id === h.id
+    const stars = '★'.repeat(Number(h.stars))
     const popup = `
       <div class="vmap-popup">
         <div class="vmap-popup-type">Hôtel</div>
-        <strong class="vmap-popup-name">${h.nom}</strong>
+        <strong class="vmap-popup-name">${h.name}</strong>
         <div class="vmap-popup-stars">${stars}</div>
         <p class="vmap-popup-desc">${h.description}</p>
-        <button class="vmap-select-btn" data-type="hotel" data-nom="${h.nom}">
+        <button class="vmap-select-btn" data-type="hotel" data-id="${h.id}">
           ${isSelected ? '✓ Sélectionné' : 'Choisir cet hôtel'}
         </button>
       </div>`
