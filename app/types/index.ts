@@ -49,3 +49,9 @@ export interface Roadtrip {
   etapes: EtapeRoadtrip[]
 }
 
+export interface Ville {
+  nom: string
+  lat: number
+  lng: number
+}
+

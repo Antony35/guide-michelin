@@ -249,4 +249,66 @@ const {
   height: 2rem;
   object-fit: contain;
 }
+
+@media (max-width: 640px) {
+  .landing {
+    height: 100dvh;
+  }
+
+  .title-wrapper img {
+    height: 1.1rem;
+  }
+
+  .panel:nth-child(2) {
+    border-left: 1px solid rgba(240, 234, 214, 0.12);
+  }
+
+  .panel-index {
+    top: 0.75rem;
+    left: 0.9rem;
+    font-size: 0.6rem;
+  }
+
+  .panel-content {
+    bottom: 1rem;
+    left: 1rem;
+  }
+
+  .panel-title {
+    font-size: clamp(0.95rem, 4vw, 1.25rem);
+    margin-bottom: 0.25rem;
+  }
+
+  .panel-video {
+    display: none;
+  }
+
+  .panel-description {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .panel-underline {
+    width: 100%;
+  }
+
+  .panel-overlay {
+    background: linear-gradient(to top, rgba(10, 10, 8, 0.65) 0%, transparent 75%);
+  }
+
+  .panel-underline {
+    height: 1px;
+    width: 1.25rem;
+  }
+
+  .logo-wrap {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .logo {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
 </style>

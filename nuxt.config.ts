@@ -19,12 +19,19 @@ export default defineNuxtConfig({
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
-      link: [{ rel: 'icon', type: 'image/png', href: '/fav-icon.png' }],
+      link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     },
+  },
+
+  router: {
+    scrollBehavior: () => ({ top: 0 }),
   },
 
   css: [
     '~/assets/css/main.css',
     'leaflet/dist/leaflet.css',
   ],
+  experimental: {
+    serverAppConfig: false,
+  },
 })

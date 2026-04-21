@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoadtrip } from '../../composables/useRoadtrip'
-
+import { useRoadtrip } from '~/composables/useRoadtrip'
+import pin from '~/assets/pin.webp'
 const { getAllRoadtrips } = useRoadtrip()
 
 const roadtrips = getAllRoadtrips()
@@ -10,12 +9,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 
 <template>
   <div class="aventure-container">
-    <div class="aventure-header">
-      <h1 class="aventure-title">Vos Aventures Gastronomiques</h1>
-      <p class="aventure-subtitle">Explorez nos itinéraires ou créez votre propre voyage</p>
-    </div>
-
-    <!-- Navigation des catégories -->
     <div class="category-nav">
       <button
         @click="activeTab = 'predefined'"
@@ -30,14 +23,10 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
         <span class="tab-label">Créer Mon Voyage</span>
       </button>
     </div>
-
-    <!-- Section Voyages Prédéfinis -->
     <div v-if="activeTab === 'predefined'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Nos Itinéraires Culinaires</h2>
-        <p class="section-desc">Découvrez nos sélections d'experts en gastronomie</p>
+        <h2 class="section-title">Notre sélection d'itinéraires Culinaires</h2>
       </div>
-
       <div class="roadtrips-grid">
         <NuxtLink
           v-for="trip in roadtrips"
@@ -57,19 +46,17 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
         </NuxtLink>
       </div>
     </div>
-
-    <!-- Section Créer Mon Voyage -->
-    <div v-else class="content-section">
+    <div v-if="activeTab === 'custom'" class="content-section">
       <div class="section-header">
-        <h2 class="section-title">Personnalisez Votre Voyage</h2>
-        <p class="section-desc">Créez votre propre itinéraire gastronomique</p>
+        <h2 class="section-title">Voyager au goût de vos envies</h2>
       </div>
-
       <div class="custom-journey-container">
         <div class="custom-card">
-          <div class="custom-icon">📍</div>
-          <h3 class="custom-title">Sélectionner vos restaurants</h3>
-          <p class="custom-desc">Choisissez les restaurants et hôtels qui correspondent à vos envies</p>
+          <div class="custom-icon">
+            <img width="40" height="40" :src="pin" alt="pin">
+          </div>
+          <h3 class="custom-title">Préparer votre voyage</h3>
+          <p class="custom-desc">Choisissez les hôtels et restaurants en fonction de votre déstination</p>
           <NuxtLink to="/aventure/custom/select" class="custom-button">
             Commencer →
           </NuxtLink>
@@ -90,44 +77,19 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 
 <style scoped>
 .aventure-container {
-  --color-black: #ffffff;
-  --color-cream: #0a0a08;
-  --color-gold: #111111;
   min-height: 100vh;
-  background-color: var(--color-black);
-  color: var(--color-cream);
-  padding: 4rem 2rem;
+  --color-ink: #1a2224;
+  --color-muted: #7a8a8c;
+  --color-muted-soft: #9aabae;
+  background-color: #eef2f3;
+  color: var(--color-ink);
 }
 
-.aventure-header {
-  max-width: 900px;
-  margin: 0 auto 3rem;
-  text-align: center;
-}
-
-.aventure-title {
-  font-family: var(--font-serif);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 300;
-  margin-bottom: 1rem;
-  color: var(--color-cream);
-}
-
-.aventure-subtitle {
-  font-family: var(--font-sans);
-  font-size: 1.125rem;
-  color: var(--color-gold);
-  margin: 0;
-}
-
-/* Navigation des catégories */
 .category-nav {
   display: flex;
   gap: 1rem;
-  max-width: 900px;
-  margin: 2rem auto 3rem;
   justify-content: center;
-  flex-wrap: wrap;
+  padding: 1.5rem 0;
 }
 
 .tab-button {
@@ -135,10 +97,10 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.75rem;
-  background-color: transparent;
-  border: 2px solid rgba(200, 16, 46, 0.3);
-  color: var(--color-cream);
-  font-family: var(--font-sans);
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 34, 36, 0.12);
+  color: var(--color-ink);
+  font-family: var(--font-sans), sans-serif;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 8px;
@@ -155,10 +117,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
   background-color: transparent;
   border-color: var(--color-red);
   color: var(--color-red);
-}
-
-.tab-icon {
-  font-size: 1.25rem;
 }
 
 /* Content Section */
@@ -181,20 +139,19 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 
 .section-header {
   text-align: center;
-  margin-bottom: 3rem;
 }
 
 .section-title {
   font-family: var(--font-serif);
   font-size: 2.25rem;
   font-weight: 300;
-  margin: 0 0 1rem 0;
+  margin-bottom: 1.5rem;
 }
 
 .section-desc {
   font-family: var(--font-sans);
   font-size: 1rem;
-  color: var(--color-gold);
+  color: var(--color-muted);
   margin: 0;
 }
 
@@ -207,8 +164,10 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 }
 
 .trip-card {
-  background: linear-gradient(135deg, rgba(184, 151, 90, 0.1) 0%, rgba(200, 16, 46, 0.05) 100%);
-  border: 1px solid rgba(200, 16, 46, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 8px;
   padding: 2rem;
   transition: all 0.3s ease;
@@ -237,7 +196,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
   font-size: 1.5rem;
   font-weight: 400;
   margin: 0;
-  color: var(--color-cream);
+  color: var(--color-ink);
   flex: 1;
 }
 
@@ -255,7 +214,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 .trip-description {
   font-family: var(--font-sans);
   font-size: 1rem;
-  color: var(--color-gray);
+  color: var(--color-muted);
   margin: 0;
   line-height: 1.6;
   flex: 1;
@@ -272,7 +231,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 .trip-steps {
   font-family: var(--font-sans);
   font-size: 0.875rem;
-  color: var(--color-gold);
+  color: var(--color-muted-soft);
 }
 
 .trip-cta {
@@ -287,7 +246,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
   transform: translateX(4px);
 }
 
-/* Custom Journey Container */
 .custom-journey-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -296,10 +254,13 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 }
 
 .custom-card {
-  background: linear-gradient(135deg, rgba(184, 151, 90, 0.15) 0%, rgba(200, 16, 46, 0.08) 100%);
-  border: 2px solid #c8102e;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 12px;
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 1.5rem;
+  margin: 0 1rem;
   text-align: center;
   transition: all 0.3s ease;
   display: flex;
@@ -315,7 +276,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 }
 
 .custom-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   line-height: 1;
 }
 
@@ -324,13 +285,13 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
   font-size: 1.5rem;
   font-weight: 400;
   margin: 0;
-  color: var(--color-cream);
+  color: var(--color-ink);
 }
 
 .custom-desc {
   font-family: var(--font-sans);
   font-size: 0.95rem;
-  color: var(--color-gray);
+  color: var(--color-muted);
   margin: 0;
   line-height: 1.5;
 }
@@ -364,18 +325,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
 }
 
 @media (max-width: 768px) {
-  .aventure-container {
-    padding: 2rem 1rem;
-  }
-
-  .aventure-header {
-    margin-bottom: 2rem;
-  }
-
-  .category-nav {
-    margin: 1.5rem auto 2rem;
-  }
-
   .tab-button {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
