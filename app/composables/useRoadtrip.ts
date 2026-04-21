@@ -1,5 +1,3 @@
-import { ref } from 'vue'
-import type { Ref } from 'vue'
 import type { Roadtrip } from '~/types'
 import roadtripsData from '~/data/roadtrips.json'
 
