@@ -116,7 +116,15 @@ function drawRoute() {
 
 function fitBounds() {
   if (!map || !L || routePoints.value.length === 0) return
-  map.fitBounds(L.latLngBounds(routePoints.value), { padding: [60, 60] })
+
+  // Cas spécial : départ et arrivée identiques (ex: Paris/Paris)
+  if (props.depart.city === props.arrivee.city && props.etapes.length === 0) {
+    // Zoom sur la ville unique avec un niveau adapté
+    map.setView([props.depart.lat, props.depart.lng], 13)
+  } else {
+    // Cas normal : plusieurs points différents
+    map.fitBounds(L.latLngBounds(routePoints.value), { padding: [60, 60] })
+  }
 }
 
 // ─── POI layer ────────────────────────────────────────────────────────────────

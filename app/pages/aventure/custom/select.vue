@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { CITIES } from '~/composables/useVoyageData'
-import pin from '~/assets/pin.webp'
+import { MapPin } from 'lucide-vue-next'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ref } from 'vue'
 
 const router = useRouter()
 const depart = ref('')
@@ -68,7 +69,7 @@ function lancerVoyage() {
   <div class="select-container">
     <div class="form-card">
       <div class="form-icon">
-        <img width="40" height="40" :src="pin" alt="">
+        <MapPin :size="40" />
       </div>
       <h1 class="form-title">Créez Votre Voyage</h1>
       <p class="form-subtitle">Choisissez votre point de départ et votre destination</p>
@@ -185,7 +186,14 @@ function lancerVoyage() {
   box-shadow: 0 8px 40px rgba(10, 10, 8, 0.08);
 }
 
-.form-icon { font-size: 2.5rem; line-height: 1; }
+.form-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: #c8102e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .form-title {
   font-family: var(--font-serif);
