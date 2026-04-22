@@ -23,10 +23,6 @@ export default defineNuxtConfig({
     },
   },
 
-  router: {
-    scrollBehavior: () => ({ top: 0 }),
-  },
-
   css: [
     '~/assets/css/main.css',
     'leaflet/dist/leaflet.css',

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
-import { useVoyageData, CITIES } from '~/composables/useVoyageData'
+import { CITIES } from '~/composables/useVoyageData'
 import type { Restaurant, Hotel, JourVoyage } from '~/types'
 
 definePageMeta({ layout: false })
@@ -33,60 +33,76 @@ const hotelOptions = [
 
 // ─── Bottom sheet drag ────────────────────────────────────────────────────────
 
-const SHEET_CLOSED = 52
-const SHEET_PEEK   = 235
+const SHEET_CLOSED = 48
+const SHEET_PEEK   = 280
 
 const sheetHeight  = ref(SHEET_CLOSED)
 const isDragging   = ref(false)
 let dragStartY     = 0
 let dragStartH     = 0
 let sheetMaxH      = 0
+let lastVelocity   = 0
 
 function getClientY(e: TouchEvent | MouseEvent): number {
-  return 'touches' in e ? e.touches[0].clientY : e.clientY
+  return 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
 }
 
 function onHandleDown(e: TouchEvent | MouseEvent) {
   isDragging.value = true
   dragStartY = getClientY(e)
   dragStartH = sheetHeight.value
-  sheetMaxH  = window.innerHeight * 0.6
+  sheetMaxH = Math.max(window.innerHeight * 0.75, window.innerHeight - 120)
+  lastVelocity = 0
 
   document.addEventListener('touchmove', onDragMove, { passive: false })
-  document.addEventListener('touchend',  onDragEnd)
+  document.addEventListener('touchend', onDragEnd)
   document.addEventListener('mousemove', onDragMove)
-  document.addEventListener('mouseup',   onDragEnd)
+  document.addEventListener('mouseup', onDragEnd)
 }
 
 function onDragMove(e: TouchEvent | MouseEvent) {
   if (!isDragging.value) return
   if (e.cancelable) e.preventDefault()
   const delta = dragStartY - getClientY(e)
+  lastVelocity = delta
   sheetHeight.value = Math.max(SHEET_CLOSED, Math.min(sheetMaxH, dragStartH + delta))
 }
 
 function onDragEnd() {
   isDragging.value = false
-  snapToNearest()
+  snapToNearest(lastVelocity)
   document.removeEventListener('touchmove', onDragMove)
-  document.removeEventListener('touchend',  onDragEnd)
+  document.removeEventListener('touchend', onDragEnd)
   document.removeEventListener('mousemove', onDragMove)
-  document.removeEventListener('mouseup',   onDragEnd)
+  document.removeEventListener('mouseup', onDragEnd)
 }
 
-function snapToNearest() {
-  const max  = window.innerHeight * 0.6
+function snapToNearest(velocity: number = 0) {
+  const max = sheetMaxH
   const mid1 = (SHEET_CLOSED + SHEET_PEEK) / 2
   const mid2 = (SHEET_PEEK + max) / 2
-  if      (sheetHeight.value < mid1) sheetHeight.value = SHEET_CLOSED
-  else if (sheetHeight.value > mid2) sheetHeight.value = max
-  else                               sheetHeight.value = SHEET_PEEK
+
+  // With velocity, prefer the direction of movement
+  if (Math.abs(velocity) > 5) {
+    if (velocity > 0) {
+      // Dragging up (positive velocity)
+      sheetHeight.value = sheetHeight.value > mid1 ? max : SHEET_CLOSED
+    } else {
+      // Dragging down (negative velocity)
+      sheetHeight.value = sheetHeight.value < mid2 ? SHEET_PEEK : max
+    }
+  } else {
+    // Without velocity, snap to nearest snap point
+    if (sheetHeight.value < mid1) sheetHeight.value = SHEET_CLOSED
+    else if (sheetHeight.value > mid2) sheetHeight.value = max
+    else sheetHeight.value = SHEET_PEEK
+  }
 }
 
 // Auto-open to peek when item selected
 watch(() => store.selectedItem, (item) => {
   if (item) {
-    sheetMaxH = window.innerHeight * 0.6
+    sheetMaxH = Math.max(window.innerHeight * 0.75, window.innerHeight - 120)
     sheetHeight.value = SHEET_PEEK
   }
 })
@@ -117,10 +133,10 @@ const mapData = computed(() => {
   const { restaurants, hotels } = getItemsForCities(store.allCityNames)
   return {
     restaurants: store.restaurantStarFilters.length
-      ? restaurants.filter(r => store.restaurantStarFilters.includes(r.stars))
+      ? restaurants.filter((r: Restaurant) => store.restaurantStarFilters.includes(r.stars))
       : restaurants,
     hotels: store.hotelStarFilters.length
-      ? hotels.filter(h => store.hotelStarFilters.includes(h.stars))
+      ? hotels.filter((h: Hotel) => store.hotelStarFilters.includes(h.stars))
       : hotels,
   }
 })
@@ -174,7 +190,7 @@ function onItemClicked(item: Restaurant | Hotel, type: 'restaurant' | 'hotel') {
 function ouvrirModalEtape() {
   const last = store.jours[store.jours.length - 1]?.date
   newEtapeDate.value = last
-    ? new Date(new Date(last).getTime() - 86400000).toISOString().split('T')[0]
+    ? (new Date(new Date(last).getTime() - 86400000).toISOString().split('T')[0] ?? '')
     : ''
   showEtapeModal.value = true
 }
@@ -228,8 +244,8 @@ function ajouterEtape() {
                 v-for="opt in restaurantOptions"
                 :key="opt.value"
                 class="filter-opt"
-                :class="{ 'filter-opt-on': store.restaurantStarFilters.includes(opt.value as any) }"
-                @click="store.toggleRestaurantStar(opt.value as any)"
+                :class="{ 'filter-opt-on': store.restaurantStarFilters.includes(opt.value as StarLevel) }"
+                @click="store.toggleRestaurantStar(opt.value as StarLevel)"
               >
                 <span class="opt-check">{{ store.restaurantStarFilters.includes(opt.value as any) ? '✓' : '' }}</span>
                 {{ opt.label }}
@@ -341,7 +357,7 @@ function ajouterEtape() {
             Appuyez sur un restaurant 🍽️ ou hôtel 🏨 pour l'ajouter à votre voyage.
           </p>
 
-          <div class="sheet-divider" />
+          <div class="sheet-divider" ></div >
 
           <!-- ── Itinéraire ── -->
           <div class="itineraire">
@@ -570,136 +586,172 @@ function ajouterEtape() {
 /* ── Bottom Sheet ────────────────────────────────── */
 .bottom-sheet {
   background: #ffffff;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -4px 30px rgba(10,10,8,0.18);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 40px rgba(10,10,8,0.15);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   will-change: height;
+  backface-visibility: hidden;
 }
 .sheet-handle {
   display: flex;
   justify-content: center;
-  padding: 0.75rem 0 0.5rem;
+  align-items: center;
+  padding: 0.85rem 0 0.65rem;
   cursor: grab;
   flex-shrink: 0;
   user-select: none;
+  min-height: 44px;
+  -webkit-touch-callout: none;
 }
 .sheet-handle:active { cursor: grabbing; }
 .handle-bar {
-  width: 40px;
-  height: 4px;
-  background: #d0d8da;
+  width: 44px;
+  height: 5px;
+  background: #dde3e5;
   border-radius: 99px;
   pointer-events: none;
+  transition: background 0.2s;
 }
+.sheet-handle:hover .handle-bar { background: #c8d0d2; }
 .sheet-scroll {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 0 1.25rem 1.5rem;
+  padding: 0 1.25rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0;
+  scroll-behavior: smooth;
 }
 
 /* ── Selected panel ──────────────────────────────── */
 .selected-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding-bottom: 0.25rem;
+  gap: 1rem;
+  padding: 0.5rem 0 0.75rem;
 }
 .selected-header {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
-.selected-emoji { font-size: 1.6rem; line-height: 1; margin-top: 0.1rem; }
-.selected-info { flex: 1; min-width: 0; }
+.selected-emoji {
+  font-size: 2rem;
+  line-height: 1;
+  margin-top: 0.05rem;
+  flex-shrink: 0;
+}
+.selected-info {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.15rem;
+}
 .selected-name {
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1a2224;
-  margin: 0 0 0.2rem;
+  margin: 0 0 0.3rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .selected-sub {
   font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: #7a8a8c;
   margin: 0;
+  line-height: 1.4;
 }
 .selected-close {
   background: none;
   border: none;
   color: #9aabae;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: 0;
+  padding: 0.25rem;
   line-height: 1;
   flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
 }
-.selected-close:hover { color: #c8102e; }
+.selected-close:active { color: #c8102e; }
 
 /* ── Day chips ───────────────────────────────────── */
 .day-chips-area {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 .day-chips-label {
   font-family: var(--font-sans);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #9aabae;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  margin: 0;
 }
 .day-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 .day-chip {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.8rem;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
   border-radius: 999px;
-  border: 1.5px solid rgba(10,10,8,0.15);
-  background: #f4f7f8;
+  border: 1.5px solid rgba(10,10,8,0.12);
+  background: #f8fafb;
   color: #1a2224;
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: all 0.15s cubic-bezier(0.4,0,0.2,1);
+  min-height: 40px;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.day-chip:active:not(:disabled) {
+  background: rgba(200,16,46,0.12);
+  border-color: #c8102e;
+  color: #c8102e;
 }
 .day-chip:hover:not(:disabled) {
-  border-color: #c8102e;
-  background: rgba(200,16,46,0.06);
+  border-color: rgba(200,16,46,0.4);
+  background: rgba(200,16,46,0.08);
   color: #c8102e;
 }
 .day-chip.chip-added {
-  background: rgba(34,139,34,0.1);
-  border-color: rgba(34,139,34,0.5);
+  background: rgba(34,139,34,0.12);
+  border-color: rgba(34,139,34,0.6);
   color: #228b22;
 }
 .day-chip.chip-disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 .chip-badge {
   font-size: 0.7rem;
   font-weight: 700;
+  line-height: 1;
 }
 .chip-badge-added { color: #228b22; }
-.chip-badge-count { color: inherit; opacity: 0.6; }
+.chip-badge-count { opacity: 0.65; }
 
 /* ── Divider ─────────────────────────────────────── */
 .sheet-divider {
@@ -720,142 +772,246 @@ function ajouterEtape() {
 }
 
 /* ── Itinéraire ──────────────────────────────────── */
-.itineraire { display: flex; flex-direction: column; gap: 0; }
+.itineraire {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 .sheet-title {
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #1a2224;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.95rem;
+  padding: 0.25rem 0;
 }
 .jour-block {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding-bottom: 0.9rem;
-  margin-bottom: 0.1rem;
-  border-bottom: 1px dashed #eef2f3;
+  gap: 0.45rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0f3f4;
+  position: relative;
 }
-.jour-block:last-of-type { border-bottom: none; }
+.jour-block:first-child { padding-top: 0; }
+.jour-block:last-child { border-bottom: none; padding-bottom: 0; }
 
 .jour-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
   font-family: var(--font-sans);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: #1a2224;
+  min-height: 36px;
 }
 .jour-dot {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   color: #fff;
+  line-height: 1;
 }
 .dot-d { background: #b8975a; }
 .dot-a { background: #c8102e; }
 .dot-e { background: #8a8680; }
 
-.jour-city { font-weight: 700; }
-.jour-date { font-size: 0.72rem; color: #9aabae; margin-left: auto; }
+.jour-city {
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jour-date {
+  font-size: 0.75rem;
+  color: #9aabae;
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
 .jour-remove {
+  background: none;
+  border: none;
+  color: #9aabae;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.jour-remove:active { background: rgba(200,16,46,0.1); color: #c8102e; }
+
+.jour-poi-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: #1a2224;
+  min-height: 40px;
+  background: #fafbfc;
+  border-radius: 10px;
+  position: relative;
+  flex-wrap: wrap;
+}
+.poi-emoji {
+  font-size: 1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.poi-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.poi-empty {
+  color: #c8d0d2;
+  font-style: italic;
+  flex: 1;
+}
+.poi-remove {
   background: none;
   border: none;
   color: #9aabae;
   font-size: 1rem;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-.jour-remove:hover { color: #c8102e; }
-
-.jour-poi-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding-left: 0.2rem;
-  font-family: var(--font-sans);
-  font-size: 0.82rem;
-  color: #1a2224;
-  min-height: 1.4rem;
-}
-.poi-emoji { font-size: 0.95rem; flex-shrink: 0; margin-top: 0.05rem; }
-.poi-name { flex: 1; }
-.poi-empty { color: #c8d0d2; font-style: italic; flex: 1; }
-.poi-remove {
-  background: none;
-  border: none;
-  color: #9aabae;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 0;
+  padding: 0.45rem;
   line-height: 1;
   flex-shrink: 0;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
+  border-radius: 6px;
+  transition: all 0.15s;
 }
-.poi-remove:hover { color: #c8102e; }
+.poi-remove:active { background: rgba(200,16,46,0.1); color: #c8102e; }
 
 .poi-resto-list {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
   min-width: 0;
+  order: 3;
+  width: 100%;
+  margin-top: 0.25rem;
 }
 .poi-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  background: rgba(200,16,46,0.07);
-  border: 1px solid rgba(200,16,46,0.2);
-  border-radius: 6px;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
+  gap: 0.3rem;
+  background: rgba(200,16,46,0.09);
+  border: 1px solid rgba(200,16,46,0.22);
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.77rem;
   color: #1a2224;
   font-family: var(--font-sans);
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 100%;
 }
-.poi-tag-stars { color: #c8102e; font-size: 0.7rem; }
+.poi-tag-stars {
+  color: #c8102e;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
 .poi-tag-remove {
   background: none;
   border: none;
   color: #9aabae;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  margin-left: 0.15rem;
+  flex-shrink: 0;
+  -webkit-touch-callout: none;
 }
-.poi-tag-remove:hover { color: #c8102e; }
+.poi-tag-remove:active { color: #c8102e; }
 
 .poi-count {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: #9aabae;
   font-family: var(--font-sans);
+  font-weight: 600;
   flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 0.1rem;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  background: rgba(200,16,46,0.05);
+  border-radius: 6px;
 }
-.poi-count.count-full { color: #c8102e; font-weight: 700; }
+.poi-count.count-full {
+  background: rgba(200,16,46,0.15);
+  color: #c8102e;
+  font-weight: 800;
+}
 
 .add-etape-btn {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   background: none;
   border: 1.5px dashed rgba(200,16,46,0.35);
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
   width: 100%;
   font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.87rem;
+  font-weight: 700;
   color: #c8102e;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.15s;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
 }
-.add-etape-btn:hover { background: rgba(200,16,46,0.05); }
+.add-etape-btn:active {
+  background: rgba(200,16,46,0.1);
+  border-color: rgba(200,16,46,0.6);
+}
+
+/* ── Divider ─────────────────────────────────────── */
+.sheet-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f0f3f4, transparent);
+  margin: 1rem 0;
+  flex-shrink: 0;
+}
+
+/* ── Hint ────────────────────────────────────────── */
+.sheet-hint {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: #9aabae;
+  text-align: center;
+  margin: 0.5rem 0;
+  padding: 1rem 0.5rem;
+  line-height: 1.5;
+}
 
 /* ── Loading ─────────────────────────────────────── */
 .carte-loading {
@@ -943,4 +1099,195 @@ function ajouterEtape() {
 }
 .modal-confirm:hover:not(:disabled) { background: rgba(200,16,46,0.25); }
 .modal-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Responsive Media Queries ─────────────────────── */
+@media (min-width: 640px) {
+  .sheet-scroll {
+    padding: 0 1.5rem 2rem;
+  }
+
+  .selected-panel {
+    gap: 1.15rem;
+    padding: 0.65rem 0 1rem;
+  }
+
+  .selected-name {
+    font-size: 1.15rem;
+  }
+
+  .day-chips-area {
+    gap: 0.75rem;
+  }
+
+  .day-chip {
+    font-size: 0.84rem;
+    padding: 0.55rem 1rem;
+    min-height: 42px;
+  }
+
+  .jour-block {
+    gap: 0.55rem;
+    padding: 1.15rem 0;
+  }
+
+  .jour-row {
+    font-size: 0.95rem;
+    min-height: 40px;
+  }
+
+  .jour-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+  }
+
+  .jour-poi-row {
+    gap: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.88rem;
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .poi-resto-list {
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .poi-tag {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    border-radius: 10px;
+  }
+
+  .add-etape-btn {
+    margin-top: 1.25rem;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    min-height: 46px;
+  }
+}
+
+@media (min-width: 768px) {
+  .bottom-sheet {
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -12px 50px rgba(10,10,8,0.12);
+  }
+
+  .sheet-handle {
+    padding: 1rem 0 0.75rem;
+  }
+
+  .handle-bar {
+    width: 48px;
+    height: 6px;
+  }
+
+  .sheet-scroll {
+    padding: 0 2rem 2.5rem;
+  }
+
+  .selected-panel {
+    gap: 1.3rem;
+    padding: 0.75rem 0 1.15rem;
+  }
+
+  .selected-header {
+    gap: 1rem;
+  }
+
+  .selected-emoji {
+    font-size: 2.25rem;
+  }
+
+  .selected-name {
+    font-size: 1.25rem;
+  }
+
+  .sheet-title {
+    font-size: 1.1rem;
+    margin: 0 0 1.1rem;
+  }
+
+  .day-chips-area {
+    gap: 0.85rem;
+  }
+
+  .day-chip {
+    font-size: 0.86rem;
+    padding: 0.6rem 1.1rem;
+    min-height: 44px;
+  }
+
+  .jour-block {
+    gap: 0.6rem;
+    padding: 1.25rem 0;
+  }
+
+  .jour-row {
+    font-size: 0.96rem;
+    gap: 0.75rem;
+  }
+
+  .jour-date {
+    font-size: 0.78rem;
+  }
+
+  .jour-poi-row {
+    gap: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.9rem;
+    min-height: 48px;
+    border-radius: 14px;
+  }
+
+  .add-etape-btn {
+    font-size: 0.95rem;
+    padding: 0.95rem 1.75rem;
+    min-height: 48px;
+  }
+
+  .sheet-hint {
+    font-size: 0.9rem;
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sheet-scroll {
+    padding: 0 2.5rem 3rem;
+  }
+
+  .selected-name {
+    font-size: 1.3rem;
+  }
+
+  .day-chip {
+    font-size: 0.88rem;
+  }
+}
+
+/* ── Optimisation tactile sur mobile ────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Désactiver les hover states sur mobile, garder seulement active */
+  .day-chip:hover:not(:disabled),
+  .jour-remove:hover,
+  .poi-remove:hover,
+  .poi-tag-remove:hover,
+  .selected-close:hover,
+  .add-etape-btn:hover {
+    background: inherit;
+    color: inherit;
+  }
+
+  /* Gardez les active states */
+  .day-chip:active:not(:disabled),
+  .jour-remove:active,
+  .poi-remove:active,
+  .poi-tag-remove:active,
+  .selected-close:active {
+    opacity: 0.8;
+  }
+}
 </style>

@@ -29,7 +29,7 @@ function formatDisplay(d: Date): string {
 const departureDateObj = ref<Date>(localDate(0))
 const arrivalDateObj = ref<Date>(localDate(1))
 
-const minArrival = computed(() => {
+const minArrival = computed<Date>(() => {
   const min = new Date(departureDateObj.value)
   min.setDate(min.getDate() + 1)
   return min

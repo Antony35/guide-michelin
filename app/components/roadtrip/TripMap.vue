@@ -18,6 +18,54 @@ const mapContainer = ref<HTMLElement | null>(null)
 let map: import('leaflet').Map | null = null
 let leafletModule: typeof import('leaflet') | null = null
 
+const HOTEL_PHOTOS: Record<string, string[]> = {
+  'Four Seasons George V': [
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Shangri-La Paris': [
+    'https://images.unsplash.com/photo-1551887373-6db7240c93f1?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Le Bristol Paris': [
+    'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Villa Florentine': [
+    'https://images.unsplash.com/photo-1549294413-26f195471cc6?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'InterContinental Lyon - Hotel Dieu': [
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1535827841776-24afc1e255ac?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Cour des Loges': [
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Balthazar Hotel & Spa': [
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1521783593447-5702b9bfd267?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Le Saint-Antoine Hotel & Spa': [
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1496412705862-e0088f16f791?auto=format&fit=crop&w=1200&q=70',
+  ],
+  'Mama Shelter Rennes': [
+    'https://images.unsplash.com/photo-1552902019-a1b3a2b44c07?auto=format&fit=crop&w=1200&q=70',
+    'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=70',
+  ],
+}
+
+function escapeHtml(input: string) {
+  return input
+    .split('&').join('&amp;')
+    .split('<').join('&lt;')
+    .split('>').join('&gt;')
+    .split('"').join('&quot;')
+    .split("'").join('&#039;')
+}
+
 // Créer des icônes personnalisées pour chaque type
 const createIcon = (
   L: typeof import('leaflet'),
@@ -119,16 +167,48 @@ const initMap = async () => {
             .join('')}</span>`
         : `<span class="stars">${'★'.repeat(etape.etoiles)}</span>`
 
+    const hotelPhotos = etape.type === 'hotel'
+      ? (HOTEL_PHOTOS[etape.nom] ?? [])
+      : []
+
+    const mediaHtml = (etape.type === 'hotel' && hotelPhotos.length)
+      ? `
+        <div class="popup-media">
+          <div class="popup-media-strip">
+            ${hotelPhotos
+              .slice(0, 3)
+              .map((src) => `<img class="popup-photo" src="${src}" alt="${escapeHtml(etape.nom)}" loading="lazy" />`)
+              .join('')}
+          </div>
+        </div>
+      `
+      : ''
+
+    const ambianceHtml = (etape.ambiance && etape.ambiance.length)
+      ? `
+        <div class="popup-chips">
+          ${etape.ambiance.slice(0, 6).map(a => `<span class="popup-chip">${escapeHtml(a)}</span>`).join('')}
+        </div>
+      `
+      : ''
+
+    const longDescription =
+      etape.type === 'hotel'
+        ? `${etape.description} Idéal pour une nuit premium avant une table étoilée, avec services bien-être et emplacement pratique pour explorer la ville.`
+        : etape.description
+
     const popupContent = `
       <div class="marker-popup">
         <div class="popup-role">${roleLabel}</div>
         <h3 class="popup-title">${etape.nom}</h3>
         <p class="popup-subtitle">${etape.ville}</p>
+        ${mediaHtml}
         <div class="popup-rating">
           ${ratingHtml}
         </div>
+        ${ambianceHtml}
         ${etape.cuisine ? `<p class="popup-cuisine">${etape.cuisine}</p>` : ''}
-        <p class="popup-description">${etape.description}</p>
+        <p class="popup-description">${escapeHtml(longDescription)}</p>
         ${index === 0 ? '<span class="badge badge-start">Départ</span>' : ''}
         ${index === props.etapes.length - 1 ? '<span class="badge badge-end">Arrivée</span>' : ''}
         ${index > 0 && index < props.etapes.length - 1 ? `<span class="badge badge-step">Étape ${index}</span>` : ''}
@@ -315,6 +395,48 @@ watch(() => props.etapes, () => {
   margin: 0.5rem 0;
 }
 
+.popup-media {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.popup-media-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 78%;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.popup-photo {
+  width: 100%;
+  height: 118px;
+  object-fit: cover;
+  border-radius: 10px;
+  scroll-snap-align: start;
+  border: 1px solid rgba(10, 10, 8, 0.08);
+}
+
+.popup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.popup-chip {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(200, 16, 46, 0.08);
+  border: 1px solid rgba(200, 16, 46, 0.18);
+  color: #c8102e;
+  white-space: nowrap;
+}
+
 .stars {
   color: var(--color-red);
   font-size: 1rem;
@@ -346,6 +468,31 @@ watch(() => props.etapes, () => {
   color: #000000;
   margin: 0.5rem 0;
   line-height: 1.4;
+}
+
+/* Mobile popup layout */
+@media (max-width: 480px) {
+  .leaflet-popup-content-wrapper {
+    border-radius: 14px;
+  }
+
+  .leaflet-popup-content {
+    margin: 10px 10px;
+    width: min(86vw, 360px);
+  }
+
+  .popup-title {
+    font-size: 1.1rem;
+  }
+
+  .popup-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .popup-photo {
+    height: 132px;
+  }
 }
 
 .badge {

@@ -6,13 +6,13 @@ function uid(): string {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0]
+  return new Date().toISOString().split('T')[0] ?? ''
 }
 
 function addDays(isoDate: string, days: number): string {
   const d = new Date(isoDate)
   d.setDate(d.getDate() + days)
-  return d.toISOString().split('T')[0]
+  return d.toISOString().split('T')[0] ?? ''
 }
 
 export const useVoyageStore = defineStore('voyage', {
@@ -71,7 +71,7 @@ export const useVoyageStore = defineStore('voyage', {
       ]
       this.selectedItem          = null
       this.selectedItemType      = null
-      this.activeJourId          = this.jours[0].id
+      this.activeJourId          = this.jours[0]!.id
       this.restaurantStarFilters = []
       this.hotelStarFilters      = []
     },
@@ -80,6 +80,7 @@ export const useVoyageStore = defineStore('voyage', {
       if (this.jours.length < 2) return
       if (this.jours.some(j => j.city.city === city.city)) return
       const last = this.jours[this.jours.length - 1]
+      if (!last) return
       const newJour: JourVoyage = {
         id: uid(),
         date: date ?? addDays(last.date, -1),
@@ -133,7 +134,7 @@ export const useVoyageStore = defineStore('voyage', {
       }
       this.selectedItem     = item
       this.selectedItemType = type
-      const itemCity = (item as Restaurant).city
+      const itemCity = item.city
       const jour = this.jours.find(j => j.city.city.toLowerCase() === itemCity.toLowerCase())
       if (jour) this.activeJourId = jour.id
     },
