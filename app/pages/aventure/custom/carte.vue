@@ -166,6 +166,10 @@ function isItemInJour(jour: JourVoyage): boolean {
 }
 
 function canAddToJour(jour: JourVoyage): boolean {
+  // Vérifier que l'item et le jour sont dans la même ville
+  if (!store.selectedItem) return false
+  if (store.selectedItem.city.toLowerCase() !== jour.city.city.toLowerCase()) return false
+
   if (store.selectedItemType === 'restaurant') return jour.restaurants.length < 3
   if (store.selectedItemType === 'hotel')      return jour.hotel === null
   return false
