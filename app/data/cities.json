@@ -18,5 +18,75 @@
     "city": "Toulouse",
     "lat": 43.6044638,
     "lng": 1.4442433
+  },
+  {
+    "city": "Alençon",
+    "lat": 48.4331,
+    "lng": -0.1184
+  },
+  {
+    "city": "Chartres",
+    "lat": 48.4471,
+    "lng": 1.4937
+  },
+  {
+    "city": "Dreux",
+    "lat": 48.7436,
+    "lng": 1.3658
+  },
+  {
+    "city": "Auxerre",
+    "lat": 47.8022,
+    "lng": 3.5705
+  },
+  {
+    "city": "Dijon",
+    "lat": 47.3220,
+    "lng": 5.0398
+  },
+  {
+    "city": "Mâcon",
+    "lat": 46.3055,
+    "lng": 4.8248
+  },
+  {
+    "city": "Orléans",
+    "lat": 47.9029,
+    "lng": 1.9089
+  },
+  {
+    "city": "Limoges",
+    "lat": 45.8336,
+    "lng": 1.2611
+  },
+  {
+    "city": "Brive-la-Gaillarde",
+    "lat": 45.1536,
+    "lng": 1.5281
+  },
+  {
+    "city": "Saint-Étienne",
+    "lat": 45.4398,
+    "lng": 4.3910
+  },
+  {
+    "city": "Clermont-Ferrand",
+    "lat": 45.7772,
+    "lng": 3.0873
+  },
+  {
+    "city": "Angers",
+    "lat": 47.4705,
+    "lng": -0.5510
+  },
+  {
+    "city": "Le Puy-en-Velay",
+    "lat": 45.0442,
+    "lng": 3.8871
+  },
+  {
+    "city": "Poitiers",
+    "lat": 46.5800,
+    "lng": 0.3406
   }
 ]

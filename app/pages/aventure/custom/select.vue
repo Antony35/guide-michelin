@@ -9,6 +9,9 @@ const router = useRouter()
 const depart = ref('')
 const arrivee = ref('')
 
+const MAJOR_CITY_NAMES = ['Paris', 'Lyon', 'Rennes', 'Toulouse']
+const majorCities = computed(() => CITIES.filter(c => MAJOR_CITY_NAMES.includes(c.city)))
+
 // Utilise des Date locales (pas UTC) pour éviter les décalages de timezone
 function localDate(offsetDays = 0): Date {
   const d = new Date()
@@ -80,7 +83,7 @@ function lancerVoyage() {
           <label class="field-label" for="depart">Ville de départ</label>
           <select id="depart" v-model="depart" class="field-select">
             <option value="">Choisir une ville</option>
-            <option v-for="ville in CITIES" :key="ville.city" :value="ville.city">
+            <option v-for="ville in majorCities" :key="ville.city" :value="ville.city">
               {{ ville.city }}
             </option>
           </select>
@@ -111,7 +114,7 @@ function lancerVoyage() {
           <label class="field-label" for="arrivee">Ville d'arrivée</label>
           <select id="arrivee" v-model="arrivee" class="field-select">
             <option value="">Choisir une ville</option>
-            <option v-for="ville in CITIES" :key="ville.city" :value="ville.city">
+            <option v-for="ville in majorCities" :key="ville.city" :value="ville.city">
               {{ ville.city }}
             </option>
           </select>

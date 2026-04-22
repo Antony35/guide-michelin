@@ -3,14 +3,14 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
 import { CITIES } from '~/composables/useVoyageData'
-import type { Restaurant, Hotel, JourVoyage } from '~/types'
+import type { Restaurant, Hotel, JourVoyage, StarLevel } from '~/types'
 
 definePageMeta({ layout: false })
 
 const route = useRoute()
 const router = useRouter()
 const store = useVoyageStore()
-const { getCity, getItemsForCities } = useVoyageData()
+const { getCity, getItemsForCities, getCitiesNearRoute } = useVoyageData()
 
 const showEtapeModal  = ref(false)
 const newEtapeNom     = ref('')
@@ -135,9 +135,15 @@ onMounted(() => {
 
 // ─── Data réactive ────────────────────────────────────────────────────────────
 
+const activeCityNames = computed(() => {
+  if (!store.allCities.length) return []
+  const nearCities = getCitiesNearRoute(store.allCities, 50)
+  return nearCities.map(c => c.city)
+})
+
 const mapData = computed(() => {
   if (!store.depart || !store.arrivee) return null
-  const { restaurants, hotels } = getItemsForCities(store.allCityNames)
+  const { restaurants, hotels } = getItemsForCities(activeCityNames.value)
   return {
     restaurants: store.restaurantStarFilters.length
       ? restaurants.filter((r: Restaurant) => store.restaurantStarFilters.includes(r.stars))
