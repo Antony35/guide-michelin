@@ -20,7 +20,7 @@ const {
       @mousemove="updateLogoAngle"
   >
     <div class="title-wrapper">
-      <img src="../assets/logo-text.svg" alt="Michelin" class=""/>
+      <AppHeader />
     </div>
 
     <NuxtLink
@@ -85,11 +85,11 @@ const {
 
 .title-wrapper {
   position: absolute;
+  width: 100%;
   top: 2rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  pointer-events: none;
   white-space: nowrap;
 }
 
