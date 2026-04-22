@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
 import { CITIES } from '~/composables/useVoyageData'
+import { UtensilsCrossed, Hotel as HotelIcon, Sun, Moon, Plus, Check, ChevronDown, X } from 'lucide-vue-next'
 import type { Restaurant, Hotel, JourVoyage, MealTime, StarLevel } from '~/types'
 
 definePageMeta({ layout: false })
@@ -95,14 +96,26 @@ function snapToNearest(velocity: number = 0) {
       sheetHeight.value = sheetHeight.value > mid1 ? max : SHEET_CLOSED
     } else {
       // Dragging down (negative velocity)
-      sheetHeight.value = sheetHeight.value < mid2 ? SHEET_PEEK : max
+      if (sheetHeight.value < mid1) {
+        // Fermer le sheet
+        closeSheet()
+      } else if (sheetHeight.value < mid2) {
+        sheetHeight.value = SHEET_PEEK
+      } else {
+        sheetHeight.value = max
+      }
     }
   } else {
     // Without velocity, snap to nearest snap point
-    if (sheetHeight.value < mid1) sheetHeight.value = SHEET_CLOSED
+    if (sheetHeight.value < mid1) closeSheet()
     else if (sheetHeight.value > mid2) sheetHeight.value = max
     else sheetHeight.value = SHEET_PEEK
   }
+}
+
+function closeSheet() {
+  sheetHeight.value = SHEET_CLOSED
+  store.setSelectedItem(null)
 }
 
 // Auto-open to peek when item selected
@@ -234,6 +247,80 @@ function ajouterEtape() {
 
 <template>
   <div class="carte-page">
+    <div class="carte-header" v-if="store.depart && store.arrivee">
+      <div class="header-breadcrumb">
+        <button class="breadcrumb-link" @click="$router.back()">
+          ← Retour
+        </button>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-text">
+          {{ store.depart?.city }}
+          <span class="breadcrumb-arrow">→</span>
+          {{ store.arrivee?.city }}
+        </span>
+      </div>
+
+      <!-- Filtres -->
+      <div class="header-filters">
+        <!-- Backdrop ferme les dropdowns -->
+        <div v-if="activeDropdown" class="filter-backdrop" @click="activeDropdown = null" />
+
+        <!-- Restaurants -->
+        <div class="filter-wrap">
+          <button
+            class="filter-chip"
+            :class="{ active: store.restaurantFilterActive }"
+            @click.stop="activeDropdown = activeDropdown === 'restos' ? null : 'restos'"
+          >
+            <UtensilsCrossed :size="16" />
+            Restos
+            <span v-if="store.restaurantFilterActive" class="filter-count">{{ store.restaurantStarFilters.length }}</span>
+            <ChevronDown :size="14" class="filter-caret" />
+          </button>
+          <div v-if="activeDropdown === 'restos'" class="filter-panel filter-panel-restos" @click.stop>
+            <button
+              v-for="opt in restaurantOptions"
+              :key="opt.value"
+              class="filter-opt"
+              :class="{ 'filter-opt-on': store.restaurantStarFilters.includes(opt.value as StarLevel) }"
+              @click="store.toggleRestaurantStar(opt.value as StarLevel)"
+            >
+              <Check v-if="store.restaurantStarFilters.includes(opt.value as any)" :size="16" class="opt-check" />
+              <span v-else class="opt-check-empty" />
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Hôtels -->
+        <div class="filter-wrap">
+          <button
+            class="filter-chip"
+            :class="{ active: store.hotelFilterActive }"
+            @click.stop="activeDropdown = activeDropdown === 'hotels' ? null : 'hotels'"
+          >
+            <HotelIcon :size="16" />
+            Hôtels
+            <span v-if="store.hotelFilterActive" class="filter-count">{{ store.hotelStarFilters.length }}</span>
+            <ChevronDown :size="14" class="filter-caret" />
+          </button>
+          <div v-if="activeDropdown === 'hotels'" class="filter-panel filter-panel-hotels" @click.stop>
+            <button
+              v-for="opt in hotelOptions"
+              :key="opt.value"
+              class="filter-opt"
+              :class="{ 'filter-opt-on': store.hotelStarFilters.includes(opt.value) }"
+              @click="store.toggleHotelStar(opt.value)"
+            >
+              <Check v-if="store.hotelStarFilters.includes(opt.value)" :size="16" class="opt-check" />
+              <span v-else class="opt-check-empty" />
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="carte-body" v-if="store.depart && store.arrivee && mapData">
 
       <!-- Carte -->
@@ -249,67 +336,9 @@ function ajouterEtape() {
           @item-clicked="onItemClicked"
         />
 
-        <!-- Backdrop ferme les dropdowns -->
-        <div v-if="activeDropdown" class="filter-backdrop" @click="activeDropdown = null" />
-
-        <!-- Filtres dropdowns -->
-        <div class="map-filters">
-
-          <!-- Restaurants -->
-          <div class="filter-wrap">
-            <button
-              class="filter-chip"
-              :class="{ active: store.restaurantFilterActive }"
-              @click.stop="activeDropdown = activeDropdown === 'restos' ? null : 'restos'"
-            >
-              🍽️ Restos
-              <span v-if="store.restaurantFilterActive" class="filter-count">{{ store.restaurantStarFilters.length }}</span>
-              <span class="filter-caret">▾</span>
-            </button>
-            <div v-if="activeDropdown === 'restos'" class="filter-panel" @click.stop>
-              <button
-                v-for="opt in restaurantOptions"
-                :key="opt.value"
-                class="filter-opt"
-                :class="{ 'filter-opt-on': store.restaurantStarFilters.includes(opt.value as StarLevel) }"
-                @click="store.toggleRestaurantStar(opt.value as StarLevel)"
-              >
-                <span class="opt-check">{{ store.restaurantStarFilters.includes(opt.value as any) ? '✓' : '' }}</span>
-                {{ opt.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Hôtels -->
-          <div class="filter-wrap">
-            <button
-              class="filter-chip"
-              :class="{ active: store.hotelFilterActive }"
-              @click.stop="activeDropdown = activeDropdown === 'hotels' ? null : 'hotels'"
-            >
-              🏨 Hôtels
-              <span v-if="store.hotelFilterActive" class="filter-count">{{ store.hotelStarFilters.length }}</span>
-              <span class="filter-caret">▾</span>
-            </button>
-            <div v-if="activeDropdown === 'hotels'" class="filter-panel" @click.stop>
-              <button
-                v-for="opt in hotelOptions"
-                :key="opt.value"
-                class="filter-opt"
-                :class="{ 'filter-opt-on': store.hotelStarFilters.includes(opt.value) }"
-                @click="store.toggleHotelStar(opt.value)"
-              >
-                <span class="opt-check">{{ store.hotelStarFilters.includes(opt.value) ? '✓' : '' }}</span>
-                {{ opt.label }}
-              </button>
-            </div>
-          </div>
-
-        </div>
-
         <!-- FAB étape -->
         <button class="fab-etape" @click="ouvrirModalEtape">
-          <span class="fab-icon">+</span>
+          <Plus :size="20" />
           <span class="fab-label">Étape</span>
         </button>
       </div>
@@ -328,7 +357,9 @@ function ajouterEtape() {
           @touchstart.prevent="onHandleDown"
           @mousedown="onHandleDown"
         >
-          <span class="handle-bar" />
+          <button class="sheet-close-btn" @click="closeSheet" aria-label="Fermer">
+            <X :size="24" />
+          </button>
         </div>
 
         <!-- Contenu scrollable -->
@@ -337,7 +368,8 @@ function ajouterEtape() {
           <!-- ── Item sélectionné ── -->
           <div v-if="store.selectedItem" class="selected-panel">
             <div class="selected-header">
-              <span class="selected-emoji">{{ store.selectedItemType === 'restaurant' ? '🍽️' : '🏨' }}</span>
+              <UtensilsCrossed v-if="store.selectedItemType === 'restaurant'" :size="32" class="selected-emoji" />
+              <HotelIcon v-else :size="32" class="selected-emoji" />
               <div class="selected-info">
                 <p class="selected-name">
                   {{ store.selectedRestaurant?.name ?? store.selectedHotel?.name }}
@@ -352,7 +384,6 @@ function ajouterEtape() {
                   </template>
                 </p>
               </div>
-              <button class="selected-close" @click="store.setSelectedItem(null)">×</button>
             </div>
 
             <!-- Chips jours -->
@@ -371,7 +402,9 @@ function ajouterEtape() {
                   @click="toggleItemInJour(jour)"
                 >
                   <span>J{{ i + 1 }} · {{ jour.city.city }}</span>
-                  <span v-if="isRestaurantInJour(jour, store.selectedRestaurant!)" class="chip-badge chip-badge-added">✓</span>
+                  <span v-if="isRestaurantInJour(jour, store.selectedRestaurant!)" class="chip-badge chip-badge-added">
+                    <Check :size="14" />
+                  </span>
                   <span v-else-if="store.selectedItemType === 'restaurant'" class="chip-badge chip-badge-count">{{ jour.restaurants.length }}/2</span>
                 </button>
               </div>
@@ -393,16 +426,13 @@ function ajouterEtape() {
                   @click="toggleItemInJour(jour)"
                 >
                   <span>J{{ i + 1 }} · {{ jour.city.city }}</span>
-                  <span v-if="jour.hotel?.id === store.selectedHotel?.id" class="chip-badge chip-badge-added">✓</span>
+                  <span v-if="jour.hotel?.id === store.selectedHotel?.id" class="chip-badge chip-badge-added">
+                    <Check :size="14" />
+                  </span>
                 </button>
               </div>
             </div>
           </div>
-
-          <!-- Hint quand rien sélectionné -->
-          <p v-else class="sheet-hint">
-            Appuyez sur un restaurant 🍽️ ou hôtel 🏨 pour l'ajouter à votre voyage.
-          </p>
 
           <div class="sheet-divider" ></div >
 
@@ -424,23 +454,27 @@ function ajouterEtape() {
 
               <!-- Hôtel du jour -->
               <div class="jour-poi-row">
-                <span class="poi-emoji">🏨</span>
+                <HotelIcon :size="20" class="poi-icon" />
                 <template v-if="jour.hotel">
                   <span class="poi-name">{{ jour.hotel.name }}</span>
-                  <button class="poi-remove" @click="store.setHotel(jour.id, jour.hotel)">×</button>
+                  <button class="poi-remove" @click="store.setHotel(jour.id, jour.hotel)">
+                    <X :size="18" />
+                  </button>
                 </template>
                 <span v-else class="poi-empty">—</span>
               </div>
 
               <!-- Restaurants du jour -->
               <div class="jour-poi-row">
-                <span class="poi-emoji">🍽️</span>
+                <UtensilsCrossed :size="20" class="poi-icon" />
                 <div v-if="jour.restaurants.length" class="poi-resto-list">
                   <span v-for="rwt in jour.restaurants" :key="rwt.restaurant.id" class="poi-tag">
                     <span class="poi-tag-meal">{{ rwt.mealTime }}</span>
                     {{ rwt.restaurant.name }}
                     <span v-if="rwt.restaurant.stars !== 'none'" class="poi-tag-stars">{{ starLabels[rwt.restaurant.stars] }}</span>
-                    <button class="poi-tag-remove" @click="store.removeRestaurant(jour.id, rwt.restaurant.id)">×</button>
+                    <button class="poi-tag-remove" @click="store.removeRestaurant(jour.id, rwt.restaurant.id)">
+                      <X :size="14" />
+                    </button>
                   </span>
                 </div>
                 <span v-else class="poi-empty">—</span>
@@ -499,14 +533,16 @@ function ajouterEtape() {
               :class="{ 'meal-btn-active': selectedMealTime === 'midi' }"
               @click="selectedMealTime = 'midi'"
             >
-              🌤️ Midi
+              <Sun :size="24" />
+              Midi
             </button>
             <button
               class="meal-btn"
               :class="{ 'meal-btn-active': selectedMealTime === 'soir' }"
               @click="selectedMealTime = 'soir'"
             >
-              🌙 Soir
+              <Moon :size="24" />
+              Soir
             </button>
           </div>
 
@@ -528,6 +564,67 @@ function ajouterEtape() {
   height: calc(100dvh - 5.75rem);
   overflow: hidden;
 }
+
+.carte-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid #eef2f3;
+  flex-shrink: 0;
+}
+
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: #7a8a8c;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: #c8102e;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.breadcrumb-link:active {
+  opacity: 0.7;
+}
+
+.breadcrumb-sep {
+  opacity: 0.5;
+}
+
+.breadcrumb-text {
+  font-weight: 500;
+  color: #1a2224;
+  white-space: nowrap;
+}
+
+.breadcrumb-arrow {
+  opacity: 0.6;
+  margin: 0 0.25rem;
+}
+
+.header-filters {
+  display: flex;
+  gap: 0.5rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
 .carte-body {
   flex: 1;
   display: flex;
@@ -548,15 +645,6 @@ function ajouterEtape() {
   position: fixed;
   inset: 0;
   z-index: 499;
-}
-.map-filters {
-  position: absolute;
-  top: 0.85rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 500;
-  display: flex;
-  gap: 0.5rem;
 }
 .filter-wrap {
   position: relative;
@@ -584,6 +672,7 @@ function ajouterEtape() {
   color: #c8102e;
   box-shadow: 0 2px 10px rgba(200,16,46,0.2);
 }
+.filter-chip svg { flex-shrink: 0; }
 .filter-count {
   background: #c8102e;
   color: #fff;
@@ -598,8 +687,7 @@ function ajouterEtape() {
 .filter-panel {
   position: absolute;
   top: calc(100% + 0.4rem);
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 28px rgba(10,10,8,0.16);
@@ -610,6 +698,16 @@ function ajouterEtape() {
   flex-direction: column;
   gap: 0.1rem;
   z-index: 501;
+}
+
+.filter-panel-restos {
+  right: auto;
+  left: 0;
+}
+
+.filter-panel-hotels {
+  right: 0;
+  left: auto;
 }
 .filter-opt {
   display: flex;
@@ -630,9 +728,18 @@ function ajouterEtape() {
 .filter-opt.filter-opt-on { background: rgba(200,16,46,0.07); color: #c8102e; font-weight: 600; }
 .opt-check {
   width: 14px;
+  height: 14px;
   font-size: 0.75rem;
   color: #c8102e;
   font-weight: 700;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.opt-check-empty {
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -657,8 +764,12 @@ function ajouterEtape() {
   box-shadow: 0 4px 20px rgba(200,16,46,0.5);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.fab-etape:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200,16,46,0.6); }
-.fab-icon { font-size: 1.2rem; line-height: 1; font-weight: 400; }
+.fab-etape:active { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200,16,46,0.6); }
+.fab-label { display: none; }
+
+@media (min-width: 640px) {
+  .fab-label { display: inline; }
+}
 
 /* ── Bottom Sheet ────────────────────────────────── */
 .bottom-sheet {
@@ -674,25 +785,37 @@ function ajouterEtape() {
 }
 .sheet-handle {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  padding: 0.85rem 0 0.65rem;
+  padding: 0.5rem 1rem;
   cursor: grab;
   flex-shrink: 0;
   user-select: none;
   min-height: 44px;
   -webkit-touch-callout: none;
 }
-.sheet-handle:active { cursor: grabbing; }
-.handle-bar {
-  width: 44px;
-  height: 5px;
-  background: #dde3e5;
-  border-radius: 99px;
-  pointer-events: none;
-  transition: background 0.2s;
+
+.sheet-close-btn {
+  background: none;
+  border: none;
+  color: #9aabae;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-touch-callout: none;
+  transition: all 0.15s;
+  border-radius: 8px;
 }
-.sheet-handle:hover .handle-bar { background: #c8d0d2; }
+.sheet-close-btn:active {
+  background: rgba(200,16,46,0.1);
+  color: #c8102e;
+}
 .sheet-scroll {
   flex: 1;
   overflow-y: auto;
@@ -722,6 +845,7 @@ function ajouterEtape() {
   line-height: 1;
   margin-top: 0.05rem;
   flex-shrink: 0;
+  color: #c8102e;
 }
 .selected-info {
   flex: 1;
@@ -826,6 +950,8 @@ function ajouterEtape() {
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
+  display: flex;
+  align-items: center;
 }
 .chip-badge-added { color: #228b22; }
 .chip-badge-count { opacity: 0.65; }
@@ -836,16 +962,6 @@ function ajouterEtape() {
   background: #eef2f3;
   margin: 0.9rem 0;
   flex-shrink: 0;
-}
-
-/* ── Hint ────────────────────────────────────────── */
-.sheet-hint {
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  color: #9aabae;
-  text-align: center;
-  margin: 0.25rem 0;
-  padding: 0.25rem 0;
 }
 
 /* ── Itinéraire ──────────────────────────────────── */
@@ -948,10 +1064,11 @@ function ajouterEtape() {
   position: relative;
   flex-wrap: wrap;
 }
-.poi-emoji {
+.poi-icon {
   font-size: 1rem;
   flex-shrink: 0;
   line-height: 1;
+  color: #c8102e;
 }
 .poi-name {
   flex: 1;
@@ -1038,6 +1155,8 @@ function ajouterEtape() {
   margin-left: 0.15rem;
   flex-shrink: 0;
   -webkit-touch-callout: none;
+  display: flex;
+  align-items: center;
 }
 .poi-tag-remove:active { color: #c8102e; }
 
@@ -1088,17 +1207,6 @@ function ajouterEtape() {
   background: linear-gradient(90deg, transparent, #f0f3f4, transparent);
   margin: 1rem 0;
   flex-shrink: 0;
-}
-
-/* ── Hint ────────────────────────────────────────── */
-.sheet-hint {
-  font-family: var(--font-sans);
-  font-size: 0.88rem;
-  color: #9aabae;
-  text-align: center;
-  margin: 0.5rem 0;
-  padding: 1rem 0.5rem;
-  line-height: 1.5;
 }
 
 /* ── Loading ─────────────────────────────────────── */
@@ -1227,6 +1335,8 @@ function ajouterEtape() {
   box-shadow: 0 4px 16px rgba(200,16,46,0.15);
 }
 
+.meal-btn svg { flex-shrink: 0; }
+
 /* ── Responsive Media Queries ─────────────────────── */
 @media (min-width: 640px) {
   .sheet-scroll {
@@ -1302,13 +1412,18 @@ function ajouterEtape() {
     box-shadow: 0 -12px 50px rgba(10,10,8,0.12);
   }
 
-  .sheet-handle {
-    padding: 1rem 0 0.75rem;
-  }
-
   .handle-bar {
     width: 48px;
     height: 6px;
+    color: #ffffff;
+    background: #ffffff;
+  }
+
+  .handle-bar :hover {
+    width: 48px;
+    height: 6px;
+    color: #ffffff;
+    background: #ffffff;
   }
 
   .sheet-scroll {
