@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import LevelCard from "~/components/passport/LevelCard.vue";
 import QuestCard from "~/components/passport/QuestCard.vue";
 import {useQuest} from "~/composables/useQuest";
+import BadgesModal from "~/components/passport/BadgesModal.vue";
 
 const { quests } = useQuest()
 
@@ -20,8 +21,6 @@ const breadCrumbItems = ref([
   { label: 'accueil', to: '/' },
   { label: 'passport' }
 ])
-
-
 </script>
 
 <template>

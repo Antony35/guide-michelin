@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 
 const emit = defineEmits(['close'])
 
-// --- Data: Liste complète de tous les badges possibles ---
 const allBadges = ref([
   { id: 'paris', name: 'Paris', obtained: true },
   { id: 'lyon', name: 'Lyon', obtained: true },
@@ -19,7 +18,6 @@ const allBadges = ref([
   { id: 'dijon', name: 'Dijon', obtained: false },
 ])
 
-// --- Logique de filtre ---
 type FilterOption = 'all' | 'obtained' | 'missing'
 const activeFilter = ref<FilterOption>('all')
 
