@@ -1,0 +1,126 @@
+[
+  {
+    "id": "paris-lyon",
+    "titre": "De Paris à Lyon",
+    "description": "Un voyage gastronomique à travers les plus beaux restaurants de France",
+    "duree": "3 jours",
+    "etapes": [
+      {
+        "ordre": 1,
+        "type": "restaurant",
+        "ville": "Paris",
+        "lat": 48.8566,
+        "lng": 2.3522,
+        "nom": "L'Astrance",
+        "etoiles": 3,
+        "cuisine": "Française contemporaine",
+        "description": "Une cuisine innovante et raffinée"
+      },
+      {
+        "ordre": 2,
+        "type": "hotel",
+        "ville": "Bourgogne",
+        "lat": 47.0896,
+        "lng": 4.7105,
+        "nom": "Relais de Bourgogne",
+        "etoiles": 5,
+        "ambiance": ["Luxe", "Calme"],
+        "description": "Refuge gastronomique en Bourgogne"
+      },
+      {
+        "ordre": 3,
+        "type": "restaurant",
+        "ville": "Lyon",
+        "lat": 45.7640,
+        "lng": 4.8357,
+        "nom": "Paul Bocuse",
+        "etoiles": 3,
+        "cuisine": "Gastronomie lyonnaise",
+        "description": "Légende vivante de la gastronomie française"
+      }
+    ]
+  },
+  {
+    "id": "provence-cote-azur",
+    "titre": "Provence & Côte d'Azur",
+    "description": "Saveurs provençales et mers azur",
+    "duree": "4 jours",
+    "etapes": [
+      {
+        "ordre": 1,
+        "type": "restaurant",
+        "ville": "Avignon",
+        "lat": 43.9462,
+        "lng": 4.8084,
+        "nom": "Le Mille-feuille",
+        "etoiles": 2,
+        "cuisine": "Méditerranéenne",
+        "description": "Cuisine de Provence avec influences méditerranéennes"
+      },
+      {
+        "ordre": 2,
+        "type": "hotel",
+        "ville": "Saint-Rémy-de-Provence",
+        "lat": 43.7829,
+        "lng": 4.8250,
+        "nom": "Château de Roussan",
+        "etoiles": 5,
+        "ambiance": ["Romantique", "Nature"],
+        "description": "Charme provençal dans un cadre authentique"
+      },
+      {
+        "ordre": 3,
+        "type": "restaurant",
+        "ville": "Cannes",
+        "lat": 43.5528,
+        "lng": 7.0174,
+        "nom": "Le Goût de l'Instant",
+        "etoiles": 2,
+        "cuisine": "Méditerranéenne",
+        "description": "Vue sur la mer et saveurs côtières"
+      }
+    ]
+  },
+  {
+    "id": "alsace-lorraine",
+    "titre": "Alsace & Lorraine",
+    "description": "Traditions culinaires du nord-est",
+    "duree": "2 jours",
+    "etapes": [
+      {
+        "ordre": 1,
+        "type": "restaurant",
+        "ville": "Strasbourg",
+        "lat": 48.5734,
+        "lng": 7.7521,
+        "nom": "Maison Kammerzell",
+        "etoiles": 1,
+        "cuisine": "Alsacienne",
+        "description": "Tradition alsacienne authentique"
+      },
+      {
+        "ordre": 2,
+        "type": "hotel",
+        "ville": "Colmar",
+        "lat": 48.0795,
+        "lng": 7.3632,
+        "nom": "Maison Rouge",
+        "etoiles": 4,
+        "ambiance": ["Charme", "Historique"],
+        "description": "Au cœur du patrimoine alsacien"
+      },
+      {
+        "ordre": 3,
+        "type": "restaurant",
+        "ville": "Metz",
+        "lat": 49.1193,
+        "lng": 6.1757,
+        "nom": "La Minoterie",
+        "etoiles": 2,
+        "cuisine": "Lorraine contemporaine",
+        "description": "Reinterpretation of Lorraine classics"
+      }
+    ]
+  }
+]
+

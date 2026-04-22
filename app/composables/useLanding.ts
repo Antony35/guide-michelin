@@ -1,10 +1,20 @@
 import hotelPoster from '~/assets/hotel.webp'
 import foodPoster from '~/assets/food.webp'
 import travelPoster from '~/assets/travel.webp'
+import storyPoster from '~/assets/story.webp'
 import storyVideo from '~/assets/videos/story.mov'
-import storyPoster from '~/assets/videos/story.png'
 
-export const PANELS: ({ id: string; index: string; title: string; description: string; videoSrc: {}; posterSrc: {}; route: string })[] = [
+type LandingPanel = {
+  id: string
+  index: string
+  title: string
+  description: string
+  videoSrc: string
+  posterSrc: string
+  route: string
+}
+
+export const PANELS: LandingPanel[] = [
   { id: 'sejourner',   index: '01', title: 'S\'éjourner',     description: "Hôtels d'exception sélectionnés par nos inspecteurs", videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/hotel_pxieqj.webm',  posterSrc: hotelPoster,  route: '/hotel' },
   { id: 'restaurer', index: '02', title: 'Se restaurer',   description: 'Tables étoilées et adresses remarquables en France',  videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/food_azaekj.webm',   posterSrc: foodPoster,   route: '/ce-soir' },
   { id: 'voyager',   index: '03', title: 'Voyager',        description: 'Road trips gastronomiques à travers la France',       videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/travel_b7gmew.webm', posterSrc: travelPoster, route: '/aventure' },

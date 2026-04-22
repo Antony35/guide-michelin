@@ -249,9 +249,40 @@ const legalLinks: LegalLink[] = [
 }
 
 @media (max-width: 640px) {
+  .footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .footer-inner {
+    padding: 0 1.25rem;
+  }
+
   .footer-main {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
+  }
+
+  .col-heading {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .newsletter-input {
+    max-width: 100%;
+  }
+
+  .newsletter-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .divider {
+    margin: 2rem 0 1rem;
   }
 
   .footer-bottom {
@@ -260,7 +291,8 @@ const legalLinks: LegalLink[] = [
   }
 
   .legal-links {
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-direction: column;
   }
 }
 </style>
