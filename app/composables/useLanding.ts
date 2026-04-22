@@ -14,11 +14,11 @@ type LandingPanel = {
   route: string
 }
 
-export const PANELS: LandingPanel[] = [
-  { id: 'sejourner',   index: '01', title: 'S\'éjourner',     description: "Hôtels d'exception sélectionnés par nos inspecteurs", videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/hotel_pxieqj.webm',  posterSrc: hotelPoster,  route: '/hotel' },
-  { id: 'restaurer', index: '02', title: 'Se restaurer',   description: 'Tables étoilées et adresses remarquables en France',  videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/food_azaekj.webm',   posterSrc: foodPoster,   route: '/ce-soir' },
+export const PANELS: ({ id: string; index: string; title: string; description: string; videoSrc: {}; posterSrc: {}; route: string })[] = [
+  { id: 'séjourner',   index: '01', title: 'Séjourner',     description: "Hôtels d'exception sélectionnés par nos inspecteurs", videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776866639/hotel_ayg1h7.webm',  posterSrc: hotelPoster,  route: 'https://guide.michelin.com/fr/fr/hotels' },
+  { id: 'restaurer', index: '02', title: 'Se restaurer',   description: 'Tables étoilées et adresses remarquables en France',  videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/food_azaekj.webm',   posterSrc: foodPoster,   route: 'https://guide.michelin.com/fr/fr/restaurants' },
   { id: 'voyager',   index: '03', title: 'Voyager',        description: 'Road trips gastronomiques à travers la France',       videoSrc: 'https://res.cloudinary.com/dzsy1svqj/video/upload/v1776720150/travel_b7gmew.webm', posterSrc: travelPoster, route: '/aventure' },
-  { id: 'histoire',  index: '04', title: 'Notre histoire', description: "125 ans d'excellence au service des voyageurs",       videoSrc: storyVideo,  posterSrc: storyPoster,  route: '/about' },
+  { id: 'histoire',  index: '04', title: 'Notre histoire', description: "125 ans d'excellence au service des voyageurs",       videoSrc: storyVideo,  posterSrc: storyPoster,  route: 'https://guide.michelin.com/fr/fr/about-us' },
 ]
 
 export function useLanding(containerRef: Ref<HTMLElement | null>) {
