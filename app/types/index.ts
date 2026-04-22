@@ -7,6 +7,12 @@ export interface City {
 }
 
 export type StarLevel = 'none' | 'bib' | 'one' | 'two' | 'three'
+export type MealTime = 'midi' | 'soir'
+
+export interface RestaurantWithTime {
+  restaurant: Restaurant
+  mealTime: MealTime
+}
 
 export interface Restaurant {
   id: number
@@ -43,7 +49,7 @@ export interface JourVoyage {
   date: string
   city: City
   hotel: Hotel | null
-  restaurants: Restaurant[]
+  restaurants: RestaurantWithTime[]
 }
 
 // ─── Types prédéfinis (voyages prédéfinis — non modifiés) ────────────────────
