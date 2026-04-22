@@ -68,3 +68,13 @@ export interface Roadtrip {
   duree: string
   etapes: EtapeRoadtrip[]
 }
+
+export interface Quest {
+  "id": number
+  "name": string
+  "description": string
+  "score": number
+  "objectif": number
+  "reward": number | string
+  "tags": string[]
+}

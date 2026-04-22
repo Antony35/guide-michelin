@@ -4,7 +4,7 @@
 <template>
   <header class="header">
     <img class="img-header" src="../assets/logo-text.svg" alt="Logo Michelin"/>
-    <NuxtLink to="/profil" class="profil-link">
+    <NuxtLink to="/passport" class="profil-link">
       <img class="profil-img" src="../assets/profil.webp" alt="Image de profil">
     </NuxtLink>
   </header>

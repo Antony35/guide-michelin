@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Les Mères lyonnaises",
+    "description": "5 bouchons emblématiques - Saison 2026",
+    "score": 2,
+    "objectif": 5,
+    "reward": 400,
+    "tags": ["Voyage"]
+  },
+  {
+    "id": 2,
+    "name": "La faim s'invite",
+    "description": "Manger dans plusieurs restaurants",
+    "score": 7,
+    "objectif": 10,
+    "reward": 150,
+    "tags": ["Restaurant", "Bib Gourmand"]
+  },
+  {
+    "id": 3,
+    "name": "Découvrir Limoges",
+    "description": "Rendez vous dans la ville de Limoges",
+    "score": 0,
+    "objectif": 1,
+    "reward": "Badge Limoges",
+    "tags": ["Voyage"]
+  }
+]
