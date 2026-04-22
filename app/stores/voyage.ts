@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { City, Restaurant, Hotel, JourVoyage, StarLevel } from '~/types'
+import type { City, Restaurant, Hotel, JourVoyage, StarLevel, MealTime, RestaurantWithTime } from '~/types'
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 9)
@@ -108,17 +108,19 @@ export const useVoyageStore = defineStore('voyage', {
       jour.hotel = jour.hotel?.id === hotel.id ? null : hotel
     },
 
-    addRestaurant(jourId: string, restaurant: Restaurant) {
+    addRestaurant(jourId: string, restaurant: Restaurant, mealTime: MealTime) {
       const jour = this.jours.find(j => j.id === jourId)
-      if (!jour || jour.restaurants.length >= 3) return
-      if (!jour.restaurants.find(r => r.id === restaurant.id)) {
-        jour.restaurants.push(restaurant)
-      }
+      if (!jour || jour.restaurants.length >= 2) return
+
+      // Vérifier que le moment n'est pas déjà utilisé
+      if (jour.restaurants.some(r => r.mealTime === mealTime)) return
+
+      jour.restaurants.push({ restaurant, mealTime })
     },
 
     removeRestaurant(jourId: string, restaurantId: number) {
       const jour = this.jours.find(j => j.id === jourId)
-      if (jour) jour.restaurants = jour.restaurants.filter(r => r.id !== restaurantId)
+      if (jour) jour.restaurants = jour.restaurants.filter(r => r.restaurant.id !== restaurantId)
     },
 
     setSelectedItem(item: Restaurant | Hotel | null, type: 'restaurant' | 'hotel' | null = null) {

@@ -61,15 +61,6 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
             Commencer →
           </NuxtLink>
         </div>
-
-        <div class="custom-card">
-          <div class="custom-icon">🗺️</div>
-          <h3 class="custom-title">Visualiser votre trajet</h3>
-          <p class="custom-desc">Visualisez le chemin complet de votre aventure sur une carte interactive</p>
-          <button disabled class="custom-button disabled">
-            Bientôt disponible
-          </button>
-        </div>
       </div>
     </div>
   </div>

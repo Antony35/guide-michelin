@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
 import { CITIES } from '~/composables/useVoyageData'
-import type { Restaurant, Hotel, JourVoyage } from '~/types'
+import type { Restaurant, Hotel, JourVoyage, MealTime, StarLevel } from '~/types'
 
 definePageMeta({ layout: false })
 
@@ -16,6 +16,11 @@ const showEtapeModal  = ref(false)
 const newEtapeNom     = ref('')
 const newEtapeDate    = ref('')
 const activeDropdown  = ref<'restos' | 'hotels' | null>(null)
+
+// Modal pour choisir le jour et le moment du restaurant
+const showMealTimeModal = ref(false)
+const selectedMealDay = ref<string | null>(null)
+const selectedMealTime = ref<MealTime | null>(null)
 
 const restaurantOptions = [
   { value: 'bib',   label: 'Bib Gourmand' },
@@ -164,12 +169,10 @@ function formatDate(iso: string): string {
 
 // ─── Logique chips "Ajouter au jour" ─────────────────────────────────────────
 
-function isItemInJour(jour: JourVoyage): boolean {
-  if (store.selectedItemType === 'restaurant' && store.selectedRestaurant)
-    return jour.restaurants.some(r => r.id === store.selectedRestaurant!.id)
-  if (store.selectedItemType === 'hotel' && store.selectedHotel)
-    return jour.hotel?.id === store.selectedHotel.id
-  return false
+// ─── Logique restaurants avec moments ────────────────────────────────────────
+
+function isRestaurantInJour(jour: JourVoyage, restaurant: Restaurant): boolean {
+  return jour.restaurants.some(r => r.restaurant.id === restaurant.id)
 }
 
 function canAddToJour(jour: JourVoyage): boolean {
@@ -177,19 +180,32 @@ function canAddToJour(jour: JourVoyage): boolean {
   if (!store.selectedItem) return false
   if (store.selectedItem.city.toLowerCase() !== jour.city.city.toLowerCase()) return false
 
-  if (store.selectedItemType === 'restaurant') return jour.restaurants.length < 3
-  if (store.selectedItemType === 'hotel')      return jour.hotel === null
+  if (store.selectedItemType === 'restaurant') return jour.restaurants.length < 2
+  if (store.selectedItemType === 'hotel') return jour.hotel === null
   return false
 }
 
+
 function toggleItemInJour(jour: JourVoyage) {
   if (store.selectedItemType === 'restaurant' && store.selectedRestaurant) {
-    isItemInJour(jour)
-      ? store.removeRestaurant(jour.id, store.selectedRestaurant.id)
-      : store.addRestaurant(jour.id, store.selectedRestaurant)
+    if (isRestaurantInJour(jour, store.selectedRestaurant)) {
+      store.removeRestaurant(jour.id, store.selectedRestaurant.id)
+    } else {
+      // Ouvrir le modal pour choisir le moment
+      selectedMealDay.value = jour.id
+      showMealTimeModal.value = true
+    }
   } else if (store.selectedItemType === 'hotel' && store.selectedHotel) {
     store.setHotel(jour.id, store.selectedHotel)
   }
+}
+
+function confirmMealTime() {
+  if (!selectedMealDay.value || !selectedMealTime.value || !store.selectedRestaurant) return
+  store.addRestaurant(selectedMealDay.value, store.selectedRestaurant, selectedMealTime.value)
+  showMealTimeModal.value = false
+  selectedMealDay.value = null
+  selectedMealTime.value = null
 }
 
 // ─── Actions modales ──────────────────────────────────────────────────────────
@@ -340,7 +356,7 @@ function ajouterEtape() {
             </div>
 
             <!-- Chips jours -->
-            <div class="day-chips-area">
+            <div class="day-chips-area" v-if="store.selectedItemType === 'restaurant'">
               <span class="day-chips-label">Ajouter au :</span>
               <div class="day-chips">
                 <button
@@ -348,16 +364,36 @@ function ajouterEtape() {
                   :key="jour.id"
                   class="day-chip"
                   :class="{
-                    'chip-added':    isItemInJour(jour),
-                    'chip-disabled': !isItemInJour(jour) && !canAddToJour(jour),
+                    'chip-added':    isRestaurantInJour(jour, store.selectedRestaurant!),
+                    'chip-disabled': !isRestaurantInJour(jour, store.selectedRestaurant!) && !canAddToJour(jour),
                   }"
-                  :disabled="!isItemInJour(jour) && !canAddToJour(jour)"
+                  :disabled="!isRestaurantInJour(jour, store.selectedRestaurant!) && !canAddToJour(jour)"
                   @click="toggleItemInJour(jour)"
                 >
                   <span>J{{ i + 1 }} · {{ jour.city.city }}</span>
-                  <span v-if="isItemInJour(jour)" class="chip-badge chip-badge-added">✓</span>
-                  <span v-else-if="store.selectedItemType === 'restaurant'" class="chip-badge chip-badge-count">{{ jour.restaurants.length }}/3</span>
-                  <span v-else-if="store.selectedItemType === 'hotel' && jour.hotel" class="chip-badge chip-badge-count">✓</span>
+                  <span v-if="isRestaurantInJour(jour, store.selectedRestaurant!)" class="chip-badge chip-badge-added">✓</span>
+                  <span v-else-if="store.selectedItemType === 'restaurant'" class="chip-badge chip-badge-count">{{ jour.restaurants.length }}/2</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Chips jours pour hôtel -->
+            <div class="day-chips-area" v-else-if="store.selectedItemType === 'hotel'">
+              <span class="day-chips-label">Ajouter au :</span>
+              <div class="day-chips">
+                <button
+                  v-for="(jour, i) in store.jours"
+                  :key="jour.id"
+                  class="day-chip"
+                  :class="{
+                    'chip-added':    jour.hotel?.id === store.selectedHotel?.id,
+                    'chip-disabled': jour.hotel?.id !== store.selectedHotel?.id && jour.hotel !== null,
+                  }"
+                  :disabled="jour.hotel?.id !== store.selectedHotel?.id && jour.hotel !== null"
+                  @click="toggleItemInJour(jour)"
+                >
+                  <span>J{{ i + 1 }} · {{ jour.city.city }}</span>
+                  <span v-if="jour.hotel?.id === store.selectedHotel?.id" class="chip-badge chip-badge-added">✓</span>
                 </button>
               </div>
             </div>
@@ -400,21 +436,21 @@ function ajouterEtape() {
               <div class="jour-poi-row">
                 <span class="poi-emoji">🍽️</span>
                 <div v-if="jour.restaurants.length" class="poi-resto-list">
-                  <span v-for="r in jour.restaurants" :key="r.id" class="poi-tag">
-                    {{ r.name }}
-                    <span v-if="r.stars !== 'none'" class="poi-tag-stars">{{ starLabels[r.stars] }}</span>
-                    <button class="poi-tag-remove" @click="store.removeRestaurant(jour.id, r.id)">×</button>
+                  <span v-for="rwt in jour.restaurants" :key="rwt.restaurant.id" class="poi-tag">
+                    <span class="poi-tag-meal">{{ rwt.mealTime }}</span>
+                    {{ rwt.restaurant.name }}
+                    <span v-if="rwt.restaurant.stars !== 'none'" class="poi-tag-stars">{{ starLabels[rwt.restaurant.stars] }}</span>
+                    <button class="poi-tag-remove" @click="store.removeRestaurant(jour.id, rwt.restaurant.id)">×</button>
                   </span>
                 </div>
                 <span v-else class="poi-empty">—</span>
-                <span class="poi-count" :class="{ 'count-full': jour.restaurants.length >= 3 }">
-                  {{ jour.restaurants.length }}/3
+                <span class="poi-count" :class="{ 'count-full': jour.restaurants.length >= 2 }">
+                  {{ jour.restaurants.length }}/2
                 </span>
               </div>
 
             </div>
 
-            <button class="add-etape-btn" @click="ouvrirModalEtape">+ Ajouter une étape</button>
           </div>
 
         </div>
@@ -447,6 +483,36 @@ function ajouterEtape() {
           <div class="modal-actions">
             <button class="modal-btn modal-cancel" @click="showEtapeModal = false">Annuler</button>
             <button class="modal-btn modal-confirm" :disabled="!newEtapeNom" @click="ajouterEtape">Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal sélection moment -->
+      <div v-if="showMealTimeModal" class="modal-overlay" @click.self="showMealTimeModal = false">
+        <div class="modal-card">
+          <h3 class="modal-title">Moment du repas</h3>
+          <p class="modal-subtitle">Choisissez le moment de votre repas</p>
+
+          <div class="meal-time-buttons">
+            <button
+              class="meal-btn"
+              :class="{ 'meal-btn-active': selectedMealTime === 'midi' }"
+              @click="selectedMealTime = 'midi'"
+            >
+              🌤️ Midi
+            </button>
+            <button
+              class="meal-btn"
+              :class="{ 'meal-btn-active': selectedMealTime === 'soir' }"
+              @click="selectedMealTime = 'soir'"
+            >
+              🌙 Soir
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button class="modal-btn modal-cancel" @click="showMealTimeModal = false">Annuler</button>
+            <button class="modal-btn modal-confirm" :disabled="!selectedMealTime" @click="confirmMealTime">Confirmer</button>
           </div>
         </div>
       </div>
@@ -945,6 +1011,17 @@ function ajouterEtape() {
   white-space: nowrap;
   max-width: 100%;
 }
+
+.poi-tag-meal {
+  background: rgba(200,16,46,0.25);
+  color: #c8102e;
+  font-weight: 700;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
 .poi-tag-stars {
   color: #c8102e;
   font-size: 0.7rem;
@@ -1110,6 +1187,45 @@ function ajouterEtape() {
 }
 .modal-confirm:hover:not(:disabled) { background: rgba(200,16,46,0.25); }
 .modal-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Meal Time Buttons ─────────────────────────────── */
+.meal-time-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.meal-btn {
+  flex: 1;
+  padding: 1rem;
+  border: 1.5px solid rgba(200,16,46,0.2);
+  border-radius: 12px;
+  background: #f8fafb;
+  color: #1a2224;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.meal-btn:active {
+  background: rgba(200,16,46,0.15);
+  border-color: #c8102e;
+  color: #c8102e;
+}
+
+.meal-btn-active {
+  background: rgba(200,16,46,0.15);
+  border-color: #c8102e;
+  color: #c8102e;
+  box-shadow: 0 4px 16px rgba(200,16,46,0.15);
+}
 
 /* ── Responsive Media Queries ─────────────────────── */
 @media (min-width: 640px) {
