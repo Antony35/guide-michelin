@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVoyageStore } from '~/stores/voyage'
 import { CITIES } from '~/composables/useVoyageData'
@@ -38,6 +38,7 @@ const SHEET_PEEK   = 280
 
 const sheetHeight  = ref(SHEET_CLOSED)
 const isDragging   = ref(false)
+const sheetScrollRef = ref<HTMLDivElement | null>(null)
 let dragStartY     = 0
 let dragStartH     = 0
 let sheetMaxH      = 0
@@ -104,6 +105,12 @@ watch(() => store.selectedItem, (item) => {
   if (item) {
     sheetMaxH = Math.max(window.innerHeight * 0.75, window.innerHeight - 120)
     sheetHeight.value = SHEET_PEEK
+    // Scroll vers le haut du bottom-sheet pour afficher les détails de l'item
+    nextTick(() => {
+      if (sheetScrollRef.value) {
+        sheetScrollRef.value.scrollTop = 0
+      }
+    })
   }
 })
 
@@ -309,7 +316,7 @@ function ajouterEtape() {
         </div>
 
         <!-- Contenu scrollable -->
-        <div class="sheet-scroll">
+        <div class="sheet-scroll" ref="sheetScrollRef">
 
           <!-- ── Item sélectionné ── -->
           <div v-if="store.selectedItem" class="selected-panel">
