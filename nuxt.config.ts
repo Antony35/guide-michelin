@@ -3,9 +3,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
-    '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@nuxtjs/google-fonts',
+    '@nuxt/ui'
   ],
 
   googleFonts: {

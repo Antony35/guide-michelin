@@ -106,10 +106,23 @@ function drawCities() {
   addCity(props.arrivee, '#c8102e', 'A')
 }
 
-function drawRoute() {
+async function fetchRoadRoute(points: [number, number][]): Promise<[number, number][]> {
+  try {
+    const coords = points.map(([lat, lng]) => `${lng},${lat}`).join(';')
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    const data = await res.json()
+    if (data.code !== 'Ok' || !data.routes?.length) return points
+    return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng])
+  } catch {
+    return points
+  }
+}
+
+async function drawRoute() {
   if (routeLine) { routeLine.remove(); routeLine = null }
   if (!map || !L || routePoints.value.length < 2) return
-  routeLine = L.polyline(routePoints.value, {
+  const coords = await fetchRoadRoute(routePoints.value)
+  routeLine = L.polyline(coords, {
     color: '#c8102e', weight: 3, opacity: 0.65, dashArray: '8, 8',
   }).addTo(map)
 }

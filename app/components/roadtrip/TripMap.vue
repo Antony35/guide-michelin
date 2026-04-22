@@ -121,10 +121,21 @@ const mapCenter = computed(() => {
   return [centerLat, centerLng]
 })
 
-// Créer les points pour la ligne de trajet
 const routePoints = computed(() => {
   return props.etapes.map(e => [e.lat, e.lng])
 })
+
+async function fetchRoadRoute(points: number[][]): Promise<number[][]> {
+  try {
+    const coords = points.map(([lat, lng]) => `${lng},${lat}`).join(';')
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    const data = await res.json()
+    if (data.code !== 'Ok' || !data.routes?.length) return points
+    return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng])
+  } catch {
+    return points
+  }
+}
 
 // Initialiser la carte
 const initMap = async () => {
@@ -218,13 +229,12 @@ const initMap = async () => {
     marker.bindPopup(popupContent).addTo(map!)
   })
 
-  // Ajouter la ligne de trajet
   if (routePoints.value.length > 1) {
-    L.polyline(routePoints.value as L.LatLngExpression[], {
+    const roadCoords = await fetchRoadRoute(routePoints.value)
+    L.polyline(roadCoords as L.LatLngExpression[], {
       color: '#c8102e',
       weight: 3,
       opacity: 0.7,
-      dashArray: '5, 5',
     }).addTo(map!)
   }
 
