@@ -59,6 +59,7 @@ const activeTab = ref<'predefined' | 'custom'>('predefined')
           <p class="custom-desc">Choisissez les hôtels et restaurants en fonction de votre déstination</p>
           <NuxtLink to="/aventure/custom/select" class="custom-button">
             Commencer →
+            // correctif
           </NuxtLink>
         </div>
       </div>
