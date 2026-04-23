@@ -64,6 +64,10 @@ const breadCrumbItems = ref([
     <section class="mx-auto max-w-xl">
       <h2 class="mb-8 text-center font-serif text-2xl font-normal">Quêtes du moment</h2>
       <QuestCard :quests="quests" />
+      <span class="flex gap-1 items-center justify-center mt-8 text-center block italic text-xs text-gray-500">
+        <img src="../../assets/reload.svg" alt="Icon reload">
+        Quêtes actualisées dans 7 jours
+      </span>
     </section>
 
     <BadgesModal v-if="isModalOpen" @close="isModalOpen = false" />

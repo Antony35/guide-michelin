@@ -46,9 +46,9 @@ const generateGrade = (level: number) => {
       <span class="font-serif text-4xl font-semibold leading-tight">{{ level }}</span>
     </div>
 
-    <div class="flex w-full flex-col gap-2">
+    <div class="flex w-full flex-col gap-5">
       <div class="flex items-baseline justify-between">
-        <span class="font-sans text-sm font-semibold text-gray-800">{{ generateGrade(level) }}</span>
+        <span class="font-sans text-xl font-semibold text-gray-800">{{ generateGrade(level) }}</span>
         <span class="flex items-center gap-1 font-sans text-sm font-medium text-gray-500">
           <img :src="expIcon" alt="Icône d'expérience" class="h-3.5 w-3.5">
           {{ currentExp }} / {{ nextLevelExp }} Exp
