@@ -3,19 +3,13 @@ import { ref } from 'vue'
 import LevelCard from "~/components/passport/LevelCard.vue";
 import QuestCard from "~/components/passport/QuestCard.vue";
 import {useQuest} from "~/composables/useQuest";
+import {useBadge} from "~/composables/useBadge";
 import BadgesModal from "~/components/passport/BadgesModal.vue";
 
 const { quests } = useQuest()
+const displayedBadges = useBadge().allObtainedBadges;
 
 const isModalOpen = ref(false)
-
-const displayedBadges = [
-  { id: 'paris', name: 'Paris', obtenus: true },
-  { id: 'lyon', name: 'Lyon', obtenus: true },
-  { id: 'toulouse', name: 'Toulouse', obtenus: false },
-  { id: 'bordeaux', name: 'Bordeaux', obtenus: false },
-  { id: 'rennes', name: 'Rennes', obtenus: false },
-]
 
 const breadCrumbItems = ref([
   { label: 'accueil', to: '/' },
@@ -46,11 +40,11 @@ const breadCrumbItems = ref([
           v-for="badge in displayedBadges"
           :key="badge.id"
           :class="[
-            'flex h-[75px] w-[75px] items-center justify-center rounded-full text-center font-semibold transition-transform duration-300 hover:scale-105',
+            'flex h-[75px] w-[75px] items-center justify-center rounded-full text-center font-semibold',
             badge.obtenus ? 'border border-red-700 bg-white text-red-700' : 'border border-dashed border-red-700 bg-transparent text-gray-500'
           ]"
         >
-          <span class="text-sm">{{ badge.obtenus ? badge.name : '?' }}</span>
+          <span class="text-xs">{{ badge.obtenus ? badge.name : '?' }}</span>
         </div>
         <div
           class="flex h-[75px] w-[75px] cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-gray-400 bg-transparent text-3xl text-gray-400 transition-transform duration-300 hover:scale-105"
