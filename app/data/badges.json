@@ -1,0 +1,93 @@
+[
+  {
+    "id": 1,
+    "theme": "pays",
+    "name": "France",
+    "badges": [
+      {
+        "id": 1,
+        "name": "Paris",
+        "obtenus": true
+      },
+      {
+        "id": 2,
+        "name": "Lyon",
+        "obtenus": true
+      },
+      {
+        "id": 3,
+        "name": "Toulouse",
+        "obtenus": false
+      },
+      {
+        "id": 4,
+        "name": "Bordeaux",
+        "obtenus": false
+      },
+      {
+        "id": 5,
+        "name": "Rennes",
+        "obtenus": false
+      },
+      {
+        "id": 6,
+        "name": "Limoges",
+        "obtenus": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "theme": "retaurant",
+    "name": "Restaurants",
+    "badges": [
+      {
+        "id": 1,
+        "name": "Restaurant 1",
+        "obtenus": true
+      },
+      {
+        "id": 2,
+        "name": "Restaurant 5",
+        "obtenus": true
+      },
+      {
+        "id": 3,
+        "name": "Restaurant 10",
+        "obtenus": false
+      },
+      {
+        "id": 4,
+        "name": "Restaurant 15",
+        "obtenus": false
+      },
+      {
+        "id": 5,
+        "name": "Restaurant 20",
+        "obtenus": false
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "theme": "voyage",
+    "name": "Bouchons",
+    "badges": [
+      {
+        "id": 1,
+        "name": "Bouchon 1",
+        "obtenus": true
+      },
+      {
+        "id": 2,
+        "name": "Bouchon 5",
+        "obtenus": false
+      },
+      {
+        "id": 3,
+        "name": "Bouchon 10",
+        "obtenus": false
+      }
+    ]
+  }
+]

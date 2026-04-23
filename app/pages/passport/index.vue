@@ -26,134 +26,46 @@ const breadCrumbItems = ref([
 <template>
   <AventureHeader />
   <AppBreadcrumb :items="breadCrumbItems" />
-  <main class="profil">
-    <section class="info-section">
+  <main class="min-h-screen bg-[#F0F4F5] p-8 font-sans text-gray-800">
+    <section class="mb-12 flex justify-center gap-6 text-xs uppercase tracking-widest text-black/50">
       <p>Passeport</p>
-      <p>Lina</p>
-      <p>2026</p>
+      <p class="before:content-['•'] before:mr-6">Lina</p>
+      <p class="before:content-['•'] before:mr-6">2026</p>
     </section>
 
-    <h1 class="profil-title">Mes tables</h1>
+    <h1 class="mb-8 text-center font-serif text-[clamp(2.5rem,5vw,3.5rem)] font-normal text-red-700">Mon Level</h1>
 
-    <section class="card-container">
-      <LevelCard />
+    <section class="mx-auto mb-12 max-w-xl">
+      <LevelCard :level="3" :current-exp="125" :next-level-exp="200" />
     </section>
 
-    <section class="badges-section">
-      <h2>Mes tampons</h2>
-      <div class="badge-container">
-        <div v-for="badge in displayedBadges" :key="badge.id" class="badge" :class="{ 'not-active': !badge.obtenus }">
-          <span class="badge-text">{{ badge.obtenus ? badge.name : '?' }}</span>
+    <section class="mx-auto mb-12 max-w-xl">
+      <h2 class="mb-8 text-center font-serif text-2xl font-normal">Mes tampons</h2>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(75px,1fr))] gap-6">
+        <div
+          v-for="badge in displayedBadges"
+          :key="badge.id"
+          :class="[
+            'flex h-[75px] w-[75px] items-center justify-center rounded-full text-center font-semibold transition-transform duration-300 hover:scale-105',
+            badge.obtenus ? 'border border-red-700 bg-white text-red-700' : 'border border-dashed border-red-700 bg-transparent text-gray-500'
+          ]"
+        >
+          <span class="text-sm">{{ badge.obtenus ? badge.name : '?' }}</span>
         </div>
-        <div class="badge placeholder" @click="isModalOpen = true">
+        <div
+          class="flex h-[75px] w-[75px] cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-gray-400 bg-transparent text-3xl text-gray-400 transition-transform duration-300 hover:scale-105"
+          @click="isModalOpen = true"
+        >
           <span>+</span>
         </div>
       </div>
     </section>
 
-    <section class="card-container">
-      <h2>Quêtes du moment</h2>
+    <section class="mx-auto max-w-xl">
+      <h2 class="mb-8 text-center font-serif text-2xl font-normal">Quêtes du moment</h2>
       <QuestCard :quests="quests" />
     </section>
 
     <BadgesModal v-if="isModalOpen" @close="isModalOpen = false" />
   </main>
 </template>
-
-<style scoped>
-.profil {
-  padding: 2rem;
-  color: var(--color-black);
-  background-color: var(--color-cream);
-  min-height: 100vh;
-  font-family: var(--font-sans), sans-serif;
-}
-
-.info-section {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.info-section p:not(:first-child)::before {
-  content: '•';
-  margin-right: 1.5rem;
-}
-
-.profil-title {
-  font-family: var(--font-serif), sans-serif;
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 400;
-  color: #BA0B2F;
-  text-align: center;
-  margin: 0 0 3rem 0;
-}
-
-.card-container {
-  max-width: 600px;
-  margin: 0 auto 3rem auto;
-}
-
-.card-progress-text span {
-  color: var(--color-red);
-}
-
-.badges-section {
-  max-width: 600px;
-  margin: 0 auto 3rem auto;
-}
-
-.badges-section h2, .card-container h2 {
-  font-family: var(--font-serif), sans-serif;
-  font-size: 1.75rem;
-  font-weight: 400;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.badge-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-  gap: 1.5rem;
-}
-
-.badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 75px;
-  height: 75px;
-  border: 1px solid #BA0B2F;
-  border-radius: 50%;
-  background-color: #fff;
-  font-weight: 600;
-  color: #BA0B2F;
-  transition: transform 0.3s ease;
-  text-align: center;
-}
-
-.not-active {
-  border: 1px dashed var(--color-red);
-  background-color: transparent;
-  color: rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease;
-  text-align: center;
-}
-
-.badge:hover {
-  transform: scale(1.05);
-}
-
-.badge.placeholder {
-  border-style: dashed;
-  color: rgba(0, 0, 0, 0.4);
-  background-color: transparent;
-  font-size: 2rem;
-  cursor: pointer;
-}
-</style>

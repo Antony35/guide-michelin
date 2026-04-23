@@ -78,3 +78,16 @@ export interface Quest {
   "reward": number | string
   "tags": string[]
 }
+
+export interface BadgeTheme {
+  "id": number
+  "theme": string
+  "name": string
+  "badges": Badge[]
+}
+
+export interface Badge {
+  "id": number
+  "name": string
+  "obtenus": boolean
+}

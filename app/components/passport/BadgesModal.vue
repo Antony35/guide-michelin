@@ -1,156 +1,87 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useBadge } from '~/composables/useBadge'
+import type { BadgeTheme } from '~/types'
 
-const emit = defineEmits(['close'])
+defineEmits(['close'])
 
-const allBadges = ref([
-  { id: 'paris', name: 'Paris', obtained: true },
-  { id: 'lyon', name: 'Lyon', obtained: true },
-  { id: 'marseille', name: 'Marseille', obtained: false },
-  { id: 'bordeaux', name: 'Bordeaux', obtained: false },
-  { id: 'lille', name: 'Lille', obtained: true },
-  { id: 'strasbourg', name: 'Strasbourg', obtained: false },
-  { id: 'nice', name: 'Nice', obtained: false },
-  { id: 'toulouse', name: 'Toulouse', obtained: false },
-  { id: 'nantes', name: 'Nantes', obtained: true },
-  { id: 'limoges', name: 'Limoges', obtained: false },
-  { id: 'reims', name: 'Reims', obtained: false },
-  { id: 'dijon', name: 'Dijon', obtained: false },
-])
+const { getAllBadgeThemes } = useBadge()
+const allBadgeThemes = getAllBadgeThemes()
 
 type FilterOption = 'all' | 'obtained' | 'missing'
 const activeFilter = ref<FilterOption>('all')
 
-const filteredBadges = computed(() => {
-  if (activeFilter.value === 'obtained') {
-    return allBadges.value.filter(badge => badge.obtained)
+const filteredThemes = computed<BadgeTheme[]>(() => {
+  if (activeFilter.value === 'all') {
+    return allBadgeThemes
   }
-  if (activeFilter.value === 'missing') {
-    return allBadges.value.filter(badge => !badge.obtained)
-  }
-  return allBadges.value
+
+  return allBadgeThemes.map(theme => {
+    const filteredBadges = theme.badges.filter(badge => {
+      return activeFilter.value === 'obtained' ? badge.obtenus : !badge.obtenus
+    })
+    return { ...theme, badges: filteredBadges }
+  }).filter(theme => theme.badges.length > 0)
 })
 </script>
 
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <div class="modal-content">
-      <button class="close-button" @click="emit('close')">&times;</button>
-      <h2>Tous les tampons</h2>
+  <div class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="$emit('close')">
+    <div class="relative flex h-[90vh] w-[90%] max-w-3xl flex-col rounded-2xl bg-[#F0F4F5] p-8 shadow-2xl">
+      <button class="absolute top-4 right-4 cursor-pointer border-none bg-none text-4xl leading-none text-gray-800" @click="$emit('close')">&times;</button>
 
-      <div class="filter-controls">
-        <button :class="{ active: activeFilter === 'all' }" @click="activeFilter = 'all'">Tous</button>
-        <button :class="{ active: activeFilter === 'obtained' }" @click="activeFilter = 'obtained'">Obtenus</button>
-        <button :class="{ active: activeFilter === 'missing' }" @click="activeFilter = 'missing'">Manquants</button>
+      <h2 class="mb-6 text-center font-serif text-3xl font-normal text-red-700">Tous les tampons</h2>
+
+      <div class="mb-6 flex flex-shrink-0 justify-center gap-4">
+        <button
+          @click="activeFilter = 'all'"
+          :class="[
+            'font-sans rounded-full border px-4 py-2 transition-all duration-200',
+            activeFilter === 'all' ? 'border-red-700 bg-red-700 text-white' : 'border-gray-400 bg-transparent'
+          ]"
+        >
+          Tous
+        </button>
+        <button
+          @click="activeFilter = 'obtained'"
+          :class="[
+            'font-sans rounded-full border px-4 py-2 transition-all duration-200',
+            activeFilter === 'obtained' ? 'border-red-700 bg-red-700 text-white' : 'border-gray-400 bg-transparent'
+          ]"
+        >
+          Obtenus
+        </button>
+        <button
+          @click="activeFilter = 'missing'"
+          :class="[
+            'font-sans rounded-full border px-4 py-2 transition-all duration-200',
+            activeFilter === 'missing' ? 'border-red-700 bg-red-700 text-white' : 'border-gray-400 bg-transparent'
+          ]"
+        >
+          Manquants
+        </button>
       </div>
 
-      <div class="badge-grid">
-        <div
-          v-for="badge in filteredBadges"
-          :key="badge.id"
-          class="badge"
-          :class="{ 'not-obtained': !badge.obtained }"
-        >
-          <span class="badge-text">{{ badge.name }}</span>
-        </div>
+      <div class="-mr-4 overflow-y-auto pr-4">
+        <section v-for="theme in filteredThemes" :key="theme.id" class="mb-8">
+          <h3 class="mb-4 border-b border-black/10 pb-2 font-serif text-xl font-semibold text-gray-800">{{ theme.name }}</h3>
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-6">
+            <div
+              v-for="badge in theme.badges"
+              :key="badge.id"
+              :title="badge.name"
+              :class="[
+                'flex h-[100px] w-[100px] flex-col items-center justify-center overflow-hidden rounded-full p-2 text-center font-semibold transition-all duration-200',
+                badge.obtenus
+                  ? 'border-2 border-red-700 bg-white text-red-700'
+                  : 'border-2 border-gray-300 bg-transparent text-gray-500'
+              ]"
+            >
+              <span class="text-xs leading-tight">{{ badge.name }}</span>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  position: relative;
-  background-color: var(--color-cream);
-  padding: 2rem;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: var(--color-black);
-}
-
-h2 {
-  font-family: var(--font-serif), sans-serif;
-  font-size: 2rem;
-  font-weight: 400;
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #BA0B2F;
-}
-
-.filter-controls {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.filter-controls button {
-  font-family: var(--font-sans), sans-serif;
-  background: none;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 20px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-controls button.active {
-  background-color: #BA0B2F;
-  color: white;
-  border-color: #BA0B2F;
-}
-
-.badge-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1.5rem;
-  overflow-y: auto;
-  padding: 0.5rem;
-}
-
-.badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100px;
-  height: 100px;
-  border: 1px solid #BA0B2F;
-  border-radius: 50%;
-  background-color: #fff;
-  font-weight: 600;
-  color: #BA0B2F;
-  text-align: center;
-}
-
-.badge.not-obtained {
-  border-color: rgba(0, 0, 0, 0.2);
-  background-color: transparent;
-  color: rgba(0, 0, 0, 0.4);
-  filter: grayscale(1);
-}
-</style>
